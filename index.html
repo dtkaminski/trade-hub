@@ -164,11 +164,12 @@ function Field({def,value,onChange,opts}){
 }
 function EntityForm({fields,record,lookups,onSave,onClose}){
   const [d,setD]=useState(record||{}); const set=(k,v)=>setD(p=>({...p,[k]:v}));
+  const fieldOpts=(f)=>{ let o=f.lookup?lookups[f.lookup]:null; if(f.filterBy && d[f.filterBy] && o) o=o.filter(x=>x.manufacturer_id===d[f.filterBy]); return o; };
   return (<div>
     <div className="grid sm:grid-cols-2 gap-x-4 gap-y-3 max-h-[62vh] overflow-auto pr-1">
       {fields.map(f=>(<div key={f.key} className={f.type==='textarea'?'sm:col-span-2':''}>
         <label className="block text-xs font-medium text-slate-500 mb-1">{f.label}</label>
-        <Field def={f} value={d[f.key]} opts={f.lookup?lookups[f.lookup]:null} onChange={v=>set(f.key,v)}/>
+        <Field def={f} value={d[f.key]} opts={fieldOpts(f)} onChange={v=>{ set(f.key,v); if(f.clears) f.clears.forEach(k=>set(k,null)); }}/>
       </div>))}
     </div>
     <div className="flex justify-end gap-2 mt-5">
@@ -227,9 +228,9 @@ function App(){
   const mName=id=>byId('manufacturers',id).name||'-';
   const rName=id=>byId('retailers',id).name||'-';
   const pName=id=>byId('products',id).name||'-';
-  const lookups={ manufacturers:data.manufacturers.map(x=>({value:x.id,label:x.name})), retailers:data.retailers.map(x=>({value:x.id,label:x.name})), products:data.products.map(x=>({value:x.id,label:x.name})) };
+  const lookups={ manufacturers:data.manufacturers.map(x=>({value:x.id,label:x.name})), retailers:data.retailers.map(x=>({value:x.id,label:x.name})), products:data.products.map(x=>({value:x.id,label:x.name,manufacturer_id:x.manufacturer_id})) };
 
-  const upsert=async(c,rec)=>{ const {__drawer,...clean}=rec; const row=clean.id?clean:{id:uid(),...clean}; setData(d=>{const ex=(d[c]||[]).some(x=>x.id===row.id); return {...d,[c]:ex?d[c].map(x=>x.id===row.id?row:x):[...(d[c]||[]),row]};}); await sbUpsert(c,row); };
+  const upsert=async(c,rec)=>{ const clean=Object.fromEntries(Object.entries(rec).filter(([k])=>!k.startsWith('_'))); const row=clean.id?clean:{id:uid(),...clean}; setData(d=>{const ex=(d[c]||[]).some(x=>x.id===row.id); return {...d,[c]:ex?d[c].map(x=>x.id===row.id?row:x):[...(d[c]||[]),row]};}); await sbUpsert(c,row); };
   const remove=async(c,id)=>{ setData(d=>({...d,[c]:d[c].filter(x=>x.id!==id)})); await sbDelete(c,id); };
   const dutyText=(p)=>{ if(p.tariff_note) return p.tariff_note; const m=byId('manufacturers',p.manufacturer_id); const c=((m&&m.country)||'').toLowerCase(); if(c.includes('spain')||c.includes('eu')) return 'Tariff-free: EU origin under the UK-EU TCA (£0/kg).'; if(c.includes('china')) return p.cooked? 'GB import: £0.856/kg if cooked and >=57% poultry meat, else £2.313/kg (meat % to confirm).' : 'GB import: £2.313/kg (uncooked / under 57% meat) - confirm.'; return 'To confirm.'; };
   const setStage=async(id,stage)=>{ setData(d=>({...d,opportunities:d.opportunities.map(o=>o.id===id?{...o,stage}:o)})); await sbUpdate('opportunities',id,{stage}); };
@@ -239,7 +240,7 @@ function App(){
     manufacturers:[{key:'name',label:'Name'},{key:'country',label:'Country'},{key:'format',label:'Format',type:'select',options:FORMATS},{key:'agent',label:'Agent'},{key:'status',label:'Status'},{key:'eu_approval',label:'EU approval'},{key:'gb_approval',label:'GB approval'},{key:'brcgs_grade',label:'BRCGS'},{key:'halal',label:'HALAL',type:'bool'},{key:'notes',label:'Notes',type:'textarea'}],
     retailers:[{key:'name',label:'Name'},{key:'type',label:'Type'},{key:'region',label:'Region'},{key:'store_count',label:'Stores',type:'number'},{key:'status',label:'Status'},{key:'notes',label:'Notes',type:'textarea'}],
     products:[{key:'name',label:'Name'},{key:'manufacturer_id',label:'Manufacturer',type:'select',lookup:'manufacturers'},{key:'format',label:'Format',type:'select',options:FORMATS},{key:'pack_size_g',label:'Pack (g)',type:'number'},{key:'units_per_case',label:'Units/case',type:'number'},{key:'cases_per_pallet',label:'Cases/pallet',type:'number'},{key:'cost_value',label:'Cost',type:'number'},{key:'cost_currency',label:'Currency',type:'select',options:['USD','EUR','GBP']},{key:'cost_basis',label:'Cost basis',type:'select',options:['per kg','per case']},{key:'hs_code',label:'HS code'},{key:'tariff_status',label:'Tariff status',type:'select',options:DATA},{key:'tariff_note',label:'Tariff / duty',type:'textarea'},{key:'cooked',label:'Cooked',type:'bool'},{key:'meat_pct',label:'Meat %',type:'number'},{key:'shelf_life_months',label:'Shelf life (mo)',type:'number'},{key:'data_status',label:'Data status',type:'select',options:DATA},{key:'notes',label:'Notes',type:'textarea'}],
-    opportunities:[{key:'product_id',label:'Product',type:'select',lookup:'products'},{key:'retailer_id',label:'Retailer',type:'select',lookup:'retailers'},{key:'stage',label:'Stage',type:'select',options:STAGES},{key:'owner',label:'Owner'},{key:'target_volume',label:'Target volume'},{key:'rsp',label:'RSP',type:'number'},{key:'sell_in_price',label:'Sell-in',type:'number'},{key:'value_estimate',label:'Value est (£/yr)',type:'number'},{key:'next_action',label:'Next action'},{key:'notes',label:'Notes',type:'textarea'}],
+    opportunities:[{key:'_manufacturer',label:'Manufacturer (pick first)',type:'select',lookup:'manufacturers',clears:['product_id']},{key:'product_id',label:'Product',type:'select',lookup:'products',filterBy:'_manufacturer'},{key:'retailer_id',label:'Retailer',type:'select',lookup:'retailers'},{key:'stage',label:'Stage',type:'select',options:STAGES},{key:'owner',label:'Owner'},{key:'target_volume',label:'Target volume'},{key:'rsp',label:'RSP',type:'number'},{key:'sell_in_price',label:'Sell-in',type:'number'},{key:'value_estimate',label:'Value est (£/yr)',type:'number'},{key:'next_action',label:'Next action'},{key:'notes',label:'Notes',type:'textarea'}],
     tasks:[{key:'title',label:'Title'},{key:'owner',label:'Owner'},{key:'priority',label:'Priority',type:'select',options:['P1','P2','P3']},{key:'status',label:'Status',type:'select',options:['open','in_progress','waiting','done']},{key:'manufacturer_id',label:'Manufacturer',type:'select',lookup:'manufacturers'},{key:'product_id',label:'Product',type:'select',lookup:'products'},{key:'notes',label:'Notes',type:'textarea'}],
     contacts:[{key:'name',label:'Name'},{key:'role',label:'Role'},{key:'email',label:'Email'},{key:'phone',label:'Phone'},{key:'manufacturer_id',label:'Manufacturer',type:'select',lookup:'manufacturers'},{key:'retailer_id',label:'Retailer',type:'select',lookup:'retailers'},{key:'notes',label:'Notes',type:'textarea'}],
     documents:[{key:'title',label:'Title'},{key:'type',label:'Type'},{key:'url',label:'Link (URL)'},{key:'manufacturer_id',label:'Manufacturer',type:'select',lookup:'manufacturers'},{key:'product_id',label:'Product',type:'select',lookup:'products'}],

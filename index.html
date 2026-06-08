@@ -59,15 +59,14 @@ function Icon({ d, className="w-5 h-5", stroke=2 }) {
 /* ---------------- seed ---------------- */
 function seed() {
   const m = { minhe:uid(), aldelis:uid(), tianpeng:uid(), korean:uid() };
-  const r = { farmfoods:uid(), iceland:uid(), morrisons:uid(), musgraves:uid(), tescoie:uid(), dunnes:uid() };
+  const r = { iceland:uid(), morrisons:uid(), musgraves:uid(), tescoie:uid(), dunnes:uid() };
   const manufacturers = [
-    { id:m.minhe, name:'Minhe (Weifang Minhe)', country:'China', format:'frozen', agent:'Conor Ryan / Gastro Global', status:'Live', eu_approval:'Yes (2023)', gb_approval:'TO CONFIRM', brcgs_grade:'Yes 2024 (grade TBC)', halal:true, notes:'Cooked/coated frozen chicken. Already supplies Farmfoods ~30 containers/month.' },
+    { id:m.minhe, name:'Minhe (Weifang Minhe)', country:'China', format:'frozen', agent:'Conor Ryan / Gastro Global', status:'Live', eu_approval:'Yes (2023)', gb_approval:'TO CONFIRM', brcgs_grade:'Yes 2024 (grade TBC)', halal:true, notes:'Cooked/coated frozen chicken. Established exporter to UK retail.' },
     { id:m.aldelis, name:'Aldelis / Pekish (PADESA)', country:'Spain', format:'chilled', agent:'Conor Ryan / Gastro Global', status:'Live (IE)', eu_approval:'EU origin', gb_approval:'n/a (EU/TCA)', brcgs_grade:'IFS certified', halal:false, notes:'27-SKU coated chicken. UK distribution on 3-5% commission.' },
     { id:m.tianpeng, name:'Tianpeng', country:'China (Qingdao)', format:'frozen', agent:'TBC', status:'Concept', eu_approval:'', gb_approval:'', brcgs_grade:'Confirm BRC/HACCP', halal:false, notes:'Frozen Asian foodservice. Delivered-Dublin cost only.' },
     { id:m.korean, name:'Korean range (NPD, via Minhe)', country:'China', format:'frozen', agent:'Conor Ryan + UK contact', status:'Concept', eu_approval:'', gb_approval:'', brcgs_grade:'', halal:false, notes:'Sauce-sachet / Korean fried chicken. Good Seoul reference. No real data yet.' },
   ];
   const retailers = [
-    { id:r.farmfoods, name:'Farmfoods', type:'Discounter', region:'GB', store_count:300, status:'Live (Minhe)', notes:'Frozen discounter, HQ Cumbernauld.' },
     { id:r.iceland, name:'Iceland (incl. Food Warehouse)', type:'Discounter', region:'GB', store_count:1183, status:'Target', notes:'Frozen specialist. Lead with 3 SKUs.' },
     { id:r.morrisons, name:'Morrisons', type:'Multiple', region:'GB', store_count:497, status:'Target', notes:'Full-range grocer.' },
     { id:r.musgraves, name:'Musgraves (SuperValu/Centra)', type:'Multiple', region:'IE', store_count:null, status:'Aldelis route', notes:'' },
@@ -112,7 +111,6 @@ function seed() {
     mk('koreanchk',{manufacturer_id:m.korean,name:'Korean-style sauced chicken (sauce sachet)',format:'frozen',cost_value:null,cost_currency:'USD',cost_basis:'per kg',hs_code:'TBC',tariff_status:'unknown',cooked:true,data_status:'unknown',notes:'NPD. Tariff TO CONFIRM (Advance Tariff Ruling). Composite product for SPS.'}),
   ];
   const opportunities = [
-    {id:uid(),product_id:p.balls,retailer_id:r.farmfoods,stage:'live',owner:'Dan',target_volume:'~30 ctnr/mo',value_estimate:null,notes:'Benchmark / proven route.'},
     {id:uid(),product_id:p.crispy,retailer_id:r.iceland,stage:'pitched',owner:'Dan',target_volume:'TBD',notes:'Iceland lead SKU. RSP vs Diggers £3.85.'},
     {id:uid(),product_id:p.saltchilli,retailer_id:r.iceland,stage:'pitched',owner:'Dan',target_volume:'TBD',notes:'Iceland lead SKU.'},
     {id:uid(),product_id:p.balls,retailer_id:r.iceland,stage:'pitched',owner:'Dan',target_volume:'TBD',notes:'Iceland lead SKU.'},
@@ -124,7 +122,6 @@ function seed() {
     {id:uid(),title:'Get Minhe GB establishment approval number + scope',owner:'Conor',priority:'P1',status:'open',manufacturer_id:m.minhe,notes:'Deal-defining.'},
     {id:uid(),title:'Confirm per-SKU cooked status + poultry-meat %',owner:'Conor',priority:'P1',status:'open',manufacturer_id:m.minhe,notes:'Sets duty £0.856 vs £2.313/kg.'},
     {id:uid(),title:'Confirm Minhe can issue the GB EHC',owner:'Conor',priority:'P1',status:'open',manufacturer_id:m.minhe,notes:''},
-    {id:uid(),title:'Real cases-per-container from Farmfoods loads',owner:'Conor',priority:'P1',status:'open',manufacturer_id:m.minhe,notes:'Unblocks volume to £.'},
     {id:uid(),title:'Confirm UK sell-in prices (Minhe + Aldelis)',owner:'Dan',priority:'P1',status:'open',notes:'Aldelis prices draft.'},
     {id:uid(),title:'Reefer FCL freight quote, China to Felixstowe',owner:'Dan',priority:'P2',status:'open',notes:''},
     {id:uid(),title:'UK cold-store rates',owner:'Dan',priority:'P2',status:'open',notes:'Only Irish stack known.'},

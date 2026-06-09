@@ -52,6 +52,7 @@ const Ic = {
   calc:  "M4 2h16a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1zM8 6h8M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M16 14h.01M8 18h8",
   flag:  "M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7",
   chart: "M3 3v18h18M7 13l3-4 3 2 5-7",
+  share: "M18 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM18 22a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM8.6 13.5l6.8 3.9M15.4 6.6 8.6 10.5",
 };
 function Icon({ d, className="w-5 h-5", stroke=2 }) {
   return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round" className={className}><path d={d}/></svg>;
@@ -257,7 +258,7 @@ function App(){
   const exportJSON=()=>{ const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='trade-hub-data.json'; a.click(); };
 
   /* ---- sidebar ---- */
-  const NAV=[['dashboard','Dashboard',Ic.dash],['pipeline','Pipeline',Ic.pipe],['forecast','Forecast',Ic.chart],['products','Products',Ic.prod],['manufacturers','Manufacturers',Ic.fact],['retailers','Retailers',Ic.store],['tasks','Tasks',Ic.task],['contacts','Contacts',Ic.people],['documents','Documents',Ic.doc]];
+  const NAV=[['dashboard','Dashboard',Ic.dash],['pipeline','Pipeline',Ic.pipe],['forecast','Forecast',Ic.chart],['map','Map',Ic.share],['products','Products',Ic.prod],['manufacturers','Manufacturers',Ic.fact],['retailers','Retailers',Ic.store],['tasks','Tasks',Ic.task],['contacts','Contacts',Ic.people],['documents','Documents',Ic.doc]];
   const counts={products:data.products.length,manufacturers:data.manufacturers.length,retailers:data.retailers.length,tasks:openTasks.length,contacts:data.contacts.length,documents:data.documents.length,pipeline:data.opportunities.length};
 
   const Sidebar=()=>(
@@ -467,6 +468,39 @@ function App(){
   const productRows = data.products.map(r=>({...r,__drawer:{type:'product',id:r.id}}));
   const manRows = data.manufacturers.map(r=>({...r,__drawer:{type:'manufacturer',id:r.id}}));
   const retRows = data.retailers.map(r=>({...r,__drawer:{type:'retailer',id:r.id}}));
+  const RelMap=()=>{
+    const mans=data.manufacturers, rets=data.retailers;
+    const prodMan={}; data.products.forEach(p=>{prodMan[p.id]=p.manufacturer_id;});
+    const model=(m)=>{const n=((m&&m.name)||'').toLowerCase(); if(n.includes('aldelis')||n.includes('pekish')) return {label:'Commission 3-5%',color:'#0d9488'}; if(n.includes('minhe')) return {label:'Buy & resell ~35%',color:'#4f46e5'}; if(n.includes('korean')) return {label:'NPD, tariff TBC',color:'#d97706'}; return {label:((m&&m.status)||'Concept'),color:'#64748b'};};
+    const skuCount=(mid)=>data.products.filter(p=>p.manufacturer_id===mid).length;
+    const dealCount=(mid)=>data.opportunities.filter(o=>prodMan[o.product_id]===mid).length;
+    const pairs={}; data.opportunities.forEach(o=>{const mid=prodMan[o.product_id]; if(!mid||!o.retailer_id)return; const k=mid+'|'+o.retailer_id; if(!pairs[k])pairs[k]={mid,rid:o.retailer_id,opps:[]}; pairs[k].opps.push(o);});
+    const NH=58,GAP=18,padTop=26,W=920,nodeW=220,leftX=16,rightX=W-nodeW-16;
+    const colH=padTop*2+Math.max(mans.length,rets.length,1)*(NH+GAP);
+    const mY={}; mans.forEach((m,i)=>{mY[m.id]=padTop+i*(NH+GAP);});
+    const rY={}; rets.forEach((r,i)=>{rY[r.id]=padTop+i*(NH+GAP);});
+    const trunc=(s,n)=>{s=s||''; return s.length>n?s.slice(0,n-1)+'…':s;};
+    const Leg=({c,t})=>(<span className="flex items-center gap-1"><span className="inline-block w-3 h-1 rounded" style={{background:c}}></span> {t}</span>);
+    return(<div className="p-6 space-y-6">
+      <div className="flex items-center gap-4 text-xs text-slate-500 flex-wrap">
+        <span className="font-semibold text-slate-600">Relationship map</span>
+        <Leg c="#0d9488" t="Commission (Aldelis)"/><Leg c="#4f46e5" t="Buy & resell (Minhe)"/><Leg c="#d97706" t="NPD / other"/>
+        <span className="ml-auto">Lines = active deals (manufacturer to retailer). Hover a line, click a node.</span>
+      </div>
+      <div className="bg-white rounded-2xl border border-slate-200 overflow-x-auto">
+        <svg width={W} height={colH} className="min-w-full">
+          <text x={leftX} y={16} fontSize="11" fill="#94a3b8" fontWeight="600">MANUFACTURERS</text>
+          <text x={rightX} y={16} fontSize="11" fill="#94a3b8" fontWeight="600">RETAILERS</text>
+          {Object.values(pairs).map((pr,idx)=>{const mm=byId('manufacturers',pr.mid); const c=model(mm).color; const y1=mY[pr.mid]+NH/2,y2=rY[pr.rid]+NH/2,x1=leftX+nodeW,x2=rightX; const d='M'+x1+' '+y1+' C'+(x1+90)+' '+y1+', '+(x2-90)+' '+y2+', '+x2+' '+y2; const tip=pr.opps.map(o=>pName(o.product_id)+' ('+(STAGE_LABEL[o.stage]||o.stage)+')').join(', '); return <path key={idx} d={d} fill="none" stroke={c} strokeWidth={1.5+pr.opps.length} strokeOpacity="0.5"><title>{rName(pr.rid)+': '+tip}</title></path>;})}
+          {mans.map(m=>{const md=model(m); return <g key={m.id} style={{cursor:'pointer'}} onClick={()=>setDrawer({type:'manufacturer',id:m.id})}><rect x={leftX} y={mY[m.id]} width={nodeW} height={NH} rx="12" fill="#ffffff" stroke="#e2e8f0"/><rect x={leftX} y={mY[m.id]} width="4" height={NH} rx="2" fill={md.color}/><text x={leftX+16} y={mY[m.id]+23} fontSize="13" fontWeight="600" fill="#1e293b">{trunc(m.name,26)}</text><text x={leftX+16} y={mY[m.id]+41} fontSize="11" fill="#64748b">{md.label+' · '+skuCount(m.id)+' SKU'}</text></g>;})}
+          {rets.map(r=>(<g key={r.id} style={{cursor:'pointer'}} onClick={()=>setDrawer({type:'retailer',id:r.id})}><rect x={rightX} y={rY[r.id]} width={nodeW} height={NH} rx="12" fill="#ffffff" stroke="#e2e8f0"/><text x={rightX+16} y={rY[r.id]+23} fontSize="13" fontWeight="600" fill="#1e293b">{trunc(r.name,26)}</text><text x={rightX+16} y={rY[r.id]+41} fontSize="11" fill="#64748b">{((r.region||'')+' · '+(r.type||''))}</text></g>))}
+        </svg>
+      </div>
+      <div><div className="text-sm font-semibold text-slate-700 mb-2">Commission &amp; margin models</div><div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {mans.map(m=>{const md=model(m); return <div key={m.id} className="bg-white rounded-2xl border border-slate-200 p-4"><div className="flex items-center gap-2"><span className="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0" style={{background:md.color}}></span><div className="font-semibold text-slate-800 text-sm leading-tight">{m.name}</div></div><div className="text-xs font-medium mt-2" style={{color:md.color}}>{md.label}</div><div className="text-xs text-slate-400 mt-1">{skuCount(m.id)+' products · '+dealCount(m.id)+' deals'}</div></div>;})}
+      </div></div>
+    </div>);
+  };
   const Forecast=()=>{
     const PROB={idea:0.1,sampling:0.25,pitched:0.4,in_review:0.6,listed:0.8,live:1,dropped:0};
     const [margin,setMargin]=useState(35);
@@ -517,6 +551,7 @@ function App(){
       {tab==='dashboard'&&<Dashboard/>}
       {tab==='pipeline'&&<Pipeline/>}
       {tab==='forecast'&&<Forecast/>}
+      {tab==='map'&&<RelMap/>}
       {tab==='products'&&<TableWrap coll="products" rows={productRows.filter(r=>match(r.name))} cols={[
         {key:'name',label:'Product'},
         {key:'manufacturer_id',label:'Manufacturer',render:r=>mName(r.manufacturer_id)},

@@ -51,6 +51,7 @@ const Ic = {
   edit:  "M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z",
   calc:  "M4 2h16a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1zM8 6h8M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M16 14h.01M8 18h8",
   flag:  "M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7",
+  chart: "M3 3v18h18M7 13l3-4 3 2 5-7",
 };
 function Icon({ d, className="w-5 h-5", stroke=2 }) {
   return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round" className={className}><path d={d}/></svg>;
@@ -256,7 +257,7 @@ function App(){
   const exportJSON=()=>{ const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='trade-hub-data.json'; a.click(); };
 
   /* ---- sidebar ---- */
-  const NAV=[['dashboard','Dashboard',Ic.dash],['pipeline','Pipeline',Ic.pipe],['products','Products',Ic.prod],['manufacturers','Manufacturers',Ic.fact],['retailers','Retailers',Ic.store],['tasks','Tasks',Ic.task],['contacts','Contacts',Ic.people],['documents','Documents',Ic.doc]];
+  const NAV=[['dashboard','Dashboard',Ic.dash],['pipeline','Pipeline',Ic.pipe],['forecast','Forecast',Ic.chart],['products','Products',Ic.prod],['manufacturers','Manufacturers',Ic.fact],['retailers','Retailers',Ic.store],['tasks','Tasks',Ic.task],['contacts','Contacts',Ic.people],['documents','Documents',Ic.doc]];
   const counts={products:data.products.length,manufacturers:data.manufacturers.length,retailers:data.retailers.length,tasks:openTasks.length,contacts:data.contacts.length,documents:data.documents.length,pipeline:data.opportunities.length};
 
   const Sidebar=()=>(
@@ -466,6 +467,45 @@ function App(){
   const productRows = data.products.map(r=>({...r,__drawer:{type:'product',id:r.id}}));
   const manRows = data.manufacturers.map(r=>({...r,__drawer:{type:'manufacturer',id:r.id}}));
   const retRows = data.retailers.map(r=>({...r,__drawer:{type:'retailer',id:r.id}}));
+  const Forecast=()=>{
+    const PROB={idea:0.1,sampling:0.25,pitched:0.4,in_review:0.6,listed:0.8,live:1,dropped:0};
+    const [margin,setMargin]=useState(35);
+    const mpct=(Number(margin)||0)/100;
+    const money=(n)=>(n==null||isNaN(n))?'£0':'£'+Math.round(n).toLocaleString();
+    const isComm=(mid)=>{const m=byId('manufacturers',mid); const n=((m&&m.name)||'').toLowerCase(); return n.includes('aldelis')||n.includes('pekish');};
+    const rows=data.opportunities.filter(o=>o.stage!=='dropped').map(o=>{const p=byId('products',o.product_id); const mid=p&&p.manufacturer_id; const val=Number(o.value_estimate)||0; const prob=PROB[o.stage]!=null?PROB[o.stage]:0; const comm=isComm(mid); return {o,mid,comm,val,prob,wval:val*prob};});
+    const totVal=rows.reduce((s,r)=>s+r.val,0);
+    const wVal=rows.reduce((s,r)=>s+r.wval,0);
+    const commBase=rows.filter(r=>r.comm).reduce((s,r)=>s+r.wval,0);
+    const resaleBase=rows.filter(r=>!r.comm).reduce((s,r)=>s+r.wval,0);
+    const resaleMargin=resaleBase*mpct;
+    const commAt=(r)=>commBase*r;
+    const incomeAt=(r)=>resaleMargin+commBase*r;
+    const missing=rows.filter(r=>r.val===0).length;
+    const byMfr={}; rows.forEach(r=>{const k=r.mid||'?'; byMfr[k]=byMfr[k]||{val:0,wval:0,comm:r.comm,n:0}; byMfr[k].val+=r.val; byMfr[k].wval+=r.wval; byMfr[k].n++;});
+    const byStage=STAGES.filter(s=>s!=='dropped').map(s=>{const rs=rows.filter(r=>r.o.stage===s); return {s,n:rs.length,val:rs.reduce((a,b)=>a+b.val,0),prob:PROB[s],wval:rs.reduce((a,b)=>a+b.wval,0)};});
+    const card=(label,value,sub)=>(<div className="bg-white rounded-2xl border border-slate-200 p-4"><div className="text-xs text-slate-400">{label}</div><div className="text-2xl font-bold text-slate-800 mt-1">{value}</div>{sub&&<div className="text-xs text-slate-400 mt-1">{sub}</div>}</div>);
+    return(<div className="p-6 space-y-6">
+      <div className="flex items-center gap-3 flex-wrap bg-white rounded-xl border border-slate-200 p-3">
+        <div className="text-xs font-medium text-slate-600">Minhe resale gross margin</div>
+        <input type="number" value={margin} onChange={e=>setMargin(e.target.value)} className="w-20 border border-slate-300 rounded-lg px-2 py-1 text-sm"/><span className="text-xs text-slate-400">%</span>
+        <div className="text-xs text-slate-400 ml-auto">Stage weights: idea 10% · sampling 25% · pitched 40% · in review 60% · listed 80% · live 100%</div>
+      </div>
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {card('Pipeline sell-in (full)',money(totVal),'unweighted, £/yr')}
+        {card('Weighted sell-in',money(wVal),'probability-weighted, £/yr')}
+        {card('Weighted Minhe margin',money(resaleMargin),margin+'% on weighted resale')}
+        {card('Weighted Aldelis commission',money(commAt(0.03))+' / '+money(commAt(0.04))+' / '+money(commAt(0.05)),'at 3% / 4% / 5%')}
+      </div>
+      <div className="bg-teal-50 border border-teal-100 rounded-2xl p-4"><div className="text-xs text-teal-700 font-semibold mb-1">Weighted income to us (Minhe margin + Aldelis commission)</div><div className="text-xl font-bold text-teal-800">{money(incomeAt(0.03))} – {money(incomeAt(0.05))} <span className="text-sm font-normal text-teal-600">/yr (Aldelis 3% to 5%)</span></div></div>
+      {missing>0 && <div className="text-xs text-amber-600">{missing} of {rows.length} opportunities have no annual value yet. Add "Value est (£/yr)" on a pipeline card to include it.</div>}
+      <div className="grid lg:grid-cols-2 gap-6">
+        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden"><div className="px-4 py-3 text-sm font-semibold text-slate-700 border-b border-slate-100">By stage</div><table className="w-full text-sm"><thead className="text-xs text-slate-400"><tr><th className="text-left px-4 py-2">Stage</th><th className="text-right px-4 py-2">#</th><th className="text-right px-4 py-2">Sell-in</th><th className="text-right px-4 py-2">Wt</th><th className="text-right px-4 py-2">Weighted</th></tr></thead><tbody>{byStage.map(r=>(<tr key={r.s} className="border-t border-slate-100"><td className="px-4 py-2"><StageTag s={r.s}/></td><td className="px-4 py-2 text-right text-slate-500">{r.n}</td><td className="px-4 py-2 text-right">{money(r.val)}</td><td className="px-4 py-2 text-right text-slate-400">{Math.round(r.prob*100)}%</td><td className="px-4 py-2 text-right font-medium">{money(r.wval)}</td></tr>))}</tbody></table></div>
+        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden"><div className="px-4 py-3 text-sm font-semibold text-slate-700 border-b border-slate-100">By manufacturer</div><table className="w-full text-sm"><thead className="text-xs text-slate-400"><tr><th className="text-left px-4 py-2">Manufacturer</th><th className="text-left px-4 py-2">Model</th><th className="text-right px-4 py-2">Weighted sell-in</th><th className="text-right px-4 py-2">Your income</th></tr></thead><tbody>{Object.entries(byMfr).map(([k,v])=>(<tr key={k} className="border-t border-slate-100"><td className="px-4 py-2">{mName(k)}</td><td className="px-4 py-2 text-xs text-slate-500">{v.comm?'Commission':'Resale margin'}</td><td className="px-4 py-2 text-right">{money(v.wval)}</td><td className="px-4 py-2 text-right font-medium">{v.comm?(money(v.wval*0.03)+' – '+money(v.wval*0.05)):money(v.wval*mpct)}</td></tr>))}</tbody></table></div>
+      </div>
+      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden"><div className="px-4 py-3 text-sm font-semibold text-slate-700 border-b border-slate-100">By opportunity</div><div className="overflow-x-auto"><table className="w-full text-sm"><thead className="text-xs text-slate-400"><tr><th className="text-left px-4 py-2">Product</th><th className="text-left px-4 py-2">Retailer</th><th className="text-left px-4 py-2">Stage</th><th className="text-right px-4 py-2">Annual value</th><th className="text-right px-4 py-2">Weighted</th><th className="text-right px-4 py-2">Your income</th></tr></thead><tbody>{rows.map(r=>(<tr key={r.o.id} className="border-t border-slate-100 hover:bg-slate-50 cursor-pointer" onClick={()=>setDrawer({type:'opportunity',id:r.o.id})}><td className="px-4 py-2">{pName(r.o.product_id)}</td><td className="px-4 py-2 text-slate-500">{rName(r.o.retailer_id)}</td><td className="px-4 py-2"><StageTag s={r.o.stage}/></td><td className="px-4 py-2 text-right">{money(r.val)}</td><td className="px-4 py-2 text-right">{money(r.wval)}</td><td className="px-4 py-2 text-right font-medium">{r.comm?(money(r.wval*0.03)+' – '+money(r.wval*0.05)):money(r.wval*mpct)}</td></tr>))}{rows.length===0&&<tr><td colSpan="6" className="px-4 py-8 text-center text-slate-400">No opportunities yet.</td></tr>}</tbody></table></div></div>
+    </div>);
+  };
 
   if(!authReady) return <div className="min-h-screen flex items-center justify-center text-slate-400">Loading...</div>;
   if(!session) return <LoginScreen/>;
@@ -476,6 +516,7 @@ function App(){
       <Topbar title={tab}/>
       {tab==='dashboard'&&<Dashboard/>}
       {tab==='pipeline'&&<Pipeline/>}
+      {tab==='forecast'&&<Forecast/>}
       {tab==='products'&&<TableWrap coll="products" rows={productRows.filter(r=>match(r.name))} cols={[
         {key:'name',label:'Product'},
         {key:'manufacturer_id',label:'Manufacturer',render:r=>mName(r.manufacturer_id)},

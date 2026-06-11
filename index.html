@@ -275,7 +275,7 @@ function App(){
   const exportJSON=()=>{ const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='trade-hub-data.json'; a.click(); };
 
   /* ---- sidebar ---- */
-  const NAV=[['dashboard','Dashboard',Ic.dash],['pipeline','Pipeline',Ic.pipe],['forecast','Forecast',Ic.chart],['map','Map',Ic.share],['products','Products',Ic.prod],['manufacturers','Manufacturers',Ic.fact],['retailers','Retailers',Ic.store],['tasks','Tasks',Ic.task],['contacts','Contacts',Ic.people],['documents','Documents',Ic.doc]];
+  const NAV=[['dashboard','Dashboard',Ic.dash],['pipeline','Pipeline',Ic.pipe],['forecast','Forecast',Ic.chart],['map','Map',Ic.share],['products','Products',Ic.prod],['manufacturers','Manufacturers',Ic.fact],['retailers','Retailers',Ic.store],['retailerview','By retailer',Ic.flag],['tasks','Tasks',Ic.task],['contacts','Contacts',Ic.people],['documents','Documents',Ic.doc]];
   const counts={products:data.products.length,manufacturers:data.manufacturers.length,retailers:data.retailers.length,tasks:openTasks.length,contacts:data.contacts.length,documents:data.documents.length,pipeline:data.opportunities.length};
 
   const Sidebar=()=>(
@@ -304,7 +304,7 @@ function App(){
   const Topbar=({title})=>(
     <div className="h-16 bg-white/80 backdrop-blur-md border-b border-slate-200/70 flex items-center gap-4 px-6 sticky top-0 z-30">
       <h1 className="text-[17px] font-semibold text-slate-900 capitalize tracking-tight">{title}</h1>
-      {tab!=='dashboard' && tab!=='pipeline' && (
+      {tab!=='dashboard' && tab!=='pipeline' && tab!=='retailerview' && (
         <div className="relative ml-2">
           <span className="absolute left-3 top-2.5 text-slate-400"><Icon d={Ic.search} className="w-4 h-4"/></span>
           <input value={q} onChange={e=>setQ(e.target.value)} placeholder="Search..." className="pl-9 pr-3 py-2 w-72 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"/>
@@ -558,6 +558,65 @@ function App(){
     </div>);
   };
 
+  const RetailerView=()=>{
+    const rs=data.retailers;
+    const [ri,setRi]=useState(0);
+    if(rs.length===0) return <div className="p-6 text-sm text-slate-400">No retailers yet. Add one on the Retailers tab.</div>;
+    const idx=Math.min(ri,rs.length-1); const r=rs[idx];
+    const go=(d)=>setRi((idx+d+rs.length)%rs.length);
+    const opps=data.opportunities.filter(o=>o.retailer_id===r.id);
+    const money=(n)=>(n==null||isNaN(n)||n===0)?'-':'£'+Math.round(n).toLocaleString();
+    const totVal=opps.reduce((a,o)=>a+(Number(o.value_estimate)||0),0);
+    const live=opps.filter(o=>o.stage==='live').length;
+    const prods=new Set(opps.map(o=>o.product_id)).size;
+    const stages=STAGES.filter(s=>s!=='dropped');
+    return(<div className="p-6 space-y-6">
+      <div className="flex items-center gap-3">
+        <button onClick={()=>go(-1)} title="Previous retailer" className="w-9 h-9 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 flex items-center justify-center text-slate-500"><Icon d={Ic.chev} className="w-4 h-4 rotate-180"/></button>
+        <select value={idx} onChange={e=>setRi(Number(e.target.value))} className="flex-1 max-w-xs border border-slate-300 rounded-lg px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500">
+          {rs.map((x,i)=><option key={x.id} value={i}>{x.name}</option>)}
+        </select>
+        <button onClick={()=>go(1)} title="Next retailer" className="w-9 h-9 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 flex items-center justify-center text-slate-500"><Icon d={Ic.chev} className="w-4 h-4"/></button>
+        <span className="text-xs text-slate-400 tnum">{idx+1} / {rs.length}</span>
+        <button onClick={()=>setModal({entity:'opportunities',record:{stage:'idea',retailer_id:r.id}})} className="ml-auto flex items-center gap-1.5 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 btn-em text-white text-sm font-medium"><Icon d={Ic.plus} className="w-4 h-4"/> Add product</button>
+      </div>
+      <div className="bg-white rounded-2xl border border-slate-200/70 card-elev p-5">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <div className="text-xl font-bold text-slate-900">{r.name}</div>
+            <div className="text-sm text-slate-500 mt-0.5">{[r.type,r.region,r.store_count?Number(r.store_count).toLocaleString()+' stores':null,r.status].filter(Boolean).join(' · ')}</div>
+          </div>
+          <button onClick={()=>setDrawer({type:'retailer',id:r.id})} className="text-xs text-emerald-600 hover:underline whitespace-nowrap flex-shrink-0">Open details</button>
+        </div>
+        {r.notes&&<div className="text-sm text-slate-600 mt-3">{r.notes}</div>}
+      </div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {[['Opportunities',opps.length],['Live listings',live],['Pipeline value / yr',money(totVal)],['Products',prods]].map(([l,v])=>(
+          <div key={l} className="bg-white rounded-2xl border border-slate-200/70 card-elev p-4"><div className="text-xs uppercase tracking-wide text-slate-400">{l}</div><div className="text-2xl font-bold text-slate-800 mt-1 tnum">{v}</div></div>
+        ))}
+      </div>
+      {opps.length===0 ? <div className="text-sm text-slate-400">No opportunities for {r.name} yet. Use "Add product" to start one.</div> :
+       <div className="space-y-5">
+        {stages.map(s=>{const list=opps.filter(o=>o.stage===s); if(list.length===0) return null; return(
+          <div key={s}>
+            <div className="flex items-center gap-2 mb-2"><StageTag s={s}/><span className="text-xs text-slate-400">{list.length}</span></div>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {list.map(o=>{const p=byId('products',o.product_id); return(
+                <div key={o.id} onClick={()=>setDrawer({type:'opportunity',id:o.id})} className="group bg-white rounded-xl border border-slate-200/70 card-elev p-3 cursor-pointer">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="font-medium text-slate-800 text-sm leading-tight">{pName(o.product_id)}</div>
+                    <button onClick={(e)=>{e.stopPropagation();setModal({entity:'opportunities',record:o});}} className="text-slate-300 hover:text-emerald-600 opacity-0 group-hover:opacity-100 flex-shrink-0" title="Edit"><Icon d={Ic.edit} className="w-3.5 h-3.5"/></button>
+                  </div>
+                  <div className="text-xs text-slate-400 mt-0.5">{mName(p.manufacturer_id)}</div>
+                  {o.value_estimate>0&&<div className="text-xs text-slate-500 mt-1 tnum">{money(o.value_estimate)}/yr</div>}
+                  {o.next_action&&<div className="text-xs text-emerald-600 mt-1 leading-tight">Next: {o.next_action}</div>}
+                </div>);})}
+            </div>
+          </div>);})}
+       </div>}
+    </div>);
+  };
+
   if(!authReady) return <div className="min-h-screen flex items-center justify-center text-slate-400">Loading...</div>;
   if(!session) return <LoginScreen/>;
 
@@ -569,6 +628,7 @@ function App(){
       {tab==='pipeline'&&<Pipeline/>}
       {tab==='forecast'&&<Forecast/>}
       {tab==='map'&&<RelMap/>}
+      {tab==='retailerview'&&<RetailerView/>}
       {tab==='products'&&<TableWrap coll="products" rows={productRows.filter(r=>match(r.name))} cols={[
         {key:'name',label:'Product'},
         {key:'manufacturer_id',label:'Manufacturer',render:r=>mName(r.manufacturer_id)},

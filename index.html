@@ -8,16 +8,33 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.6/babel.min.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','ui-sans-serif','system-ui','sans-serif'],mono:['"JetBrains Mono"','ui-monospace','monospace']},colors:{ink:'#0B0F14'}}}}</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-  ::-webkit-scrollbar{width:9px;height:9px}
-  ::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:9px}
-  body{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial}
+  :root{--ink:#0B0F14;--em:#10B981}
+  *{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  html,body{font-family:'Inter',ui-sans-serif,system-ui,sans-serif}
+  body{background:#F7F8FA;letter-spacing:-0.006em}
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-thumb{background:#d4d8df;border-radius:9px;border:2px solid transparent;background-clip:content-box}
+  ::-webkit-scrollbar-thumb:hover{background:#b9bfc9;background-clip:content-box}
+  ::selection{background:rgba(16,185,129,.18)}
   .drawer-enter{transform:translateX(100%)}
-  .drawer-in{transform:translateX(0);transition:transform .25s ease}
+  .drawer-in{transform:translateX(0);transition:transform .28s cubic-bezier(.16,1,.3,1)}
+  .tnum{font-variant-numeric:tabular-nums}
+  table{font-variant-numeric:tabular-nums}
+  .card-elev{box-shadow:0 1px 2px rgba(16,24,40,.04),0 6px 16px -8px rgba(16,24,40,.10)}
+  .card-elev:hover{box-shadow:0 1px 2px rgba(16,24,40,.05),0 10px 24px -10px rgba(16,24,40,.14)}
+  .btn-em{box-shadow:0 1px 2px rgba(5,150,105,.30),inset 0 1px 0 rgba(255,255,255,.12)}
+  .sidebar-grad{background:linear-gradient(180deg,#0B0F14 0%,#0C1118 100%)}
+  .logo-grad{background:linear-gradient(135deg,#10B981 0%,#0EA5A4 100%);box-shadow:0 2px 10px rgba(16,185,129,.40)}
+  nav::-webkit-scrollbar{width:0}
 </style>
 </head>
-<body class="bg-slate-50 text-slate-800">
+<body class="bg-[#F7F8FA] text-slate-800">
 <div id="root"></div>
 
 <script type="text/babel">
@@ -151,15 +168,15 @@ function readiness(p){ const filled=PROD_KEYS.filter(k=>p[k]!=null && p[k]!=='')
 
 function Badge({value}){ const map={confirmed:'bg-emerald-100 text-emerald-700',partial:'bg-amber-100 text-amber-700',unknown:'bg-rose-100 text-rose-600'};
   return <span className={'px-2 py-0.5 rounded-full text-xs font-medium '+(map[value]||'bg-slate-100 text-slate-500')}>{value||'-'}</span>; }
-function StageTag({s}){ const map={idea:'bg-slate-100 text-slate-600',sampling:'bg-sky-100 text-sky-700',pitched:'bg-indigo-100 text-indigo-700',in_review:'bg-violet-100 text-violet-700',listed:'bg-teal-100 text-teal-700',live:'bg-emerald-100 text-emerald-700',dropped:'bg-rose-100 text-rose-600'};
+function StageTag({s}){ const map={idea:'bg-slate-100 text-slate-600',sampling:'bg-sky-100 text-sky-700',pitched:'bg-indigo-100 text-indigo-700',in_review:'bg-violet-100 text-violet-700',listed:'bg-emerald-100 text-emerald-700',live:'bg-emerald-100 text-emerald-700',dropped:'bg-rose-100 text-rose-600'};
   return <span className={'px-2 py-0.5 rounded text-xs font-medium '+(map[s]||'bg-slate-100')}>{STAGE_LABEL[s]||s}</span>; }
 function Pri({p}){ const c=p==='P1'?'text-rose-600':p==='P2'?'text-amber-600':'text-slate-400'; return <span className={'text-xs font-bold '+c}>{p}</span>; }
 
 /* ---------------- form ---------------- */
 function Field({def,value,onChange,opts}){
-  const cls="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500";
+  const cls="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500";
   if(def.type==='select') return <select className={cls} value={value||''} onChange={e=>onChange(e.target.value)}><option value="">-</option>{(def.options||opts||[]).map(o=>typeof o==='object'?<option key={o.value} value={o.value}>{o.label}</option>:<option key={o} value={o}>{o}</option>)}</select>;
-  if(def.type==='bool') return <label className="inline-flex items-center gap-2 text-sm"><input type="checkbox" checked={!!value} onChange={e=>onChange(e.target.checked)} className="h-4 w-4 accent-teal-600"/> yes</label>;
+  if(def.type==='bool') return <label className="inline-flex items-center gap-2 text-sm"><input type="checkbox" checked={!!value} onChange={e=>onChange(e.target.checked)} className="h-4 w-4 accent-emerald-600"/> yes</label>;
   if(def.type==='textarea') return <textarea className={cls} rows="3" value={value||''} onChange={e=>onChange(e.target.value)} />;
   if(def.type==='number') return <input type="number" step="any" className={cls} value={value??''} onChange={e=>onChange(e.target.value===''?null:Number(e.target.value))} />;
   return <input type="text" className={cls} value={value||''} onChange={e=>onChange(e.target.value)} />;
@@ -176,7 +193,7 @@ function EntityForm({fields,record,lookups,onSave,onClose}){
     </div>
     <div className="flex justify-end gap-2 mt-5">
       <button onClick={onClose} className="px-4 py-2 text-sm rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-50">Cancel</button>
-      <button onClick={()=>onSave(d)} className="px-5 py-2 text-sm rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-medium">Save</button>
+      <button onClick={()=>onSave(d)} className="px-5 py-2 text-sm rounded-lg bg-emerald-600 hover:bg-emerald-700 btn-em text-white font-medium">Save</button>
     </div>
   </div>);
 }
@@ -198,16 +215,16 @@ function LoginScreen(){
     if(mode==='in'){ const {error}=await sb.auth.signInWithPassword({email,password:pw}); if(error)setMsg(error.message); }
     else { const {data,error}=await sb.auth.signUp({email,password:pw}); if(error){setMsg(error.message);return;} if(data.session){return;} const r=await sb.auth.signInWithPassword({email,password:pw}); if(r.error)setMsg('Account created. If prompted, confirm via the email we sent, then use Sign in.'); }
   };
-  const inp="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-teal-500";
+  const inp="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-emerald-500";
   return(<div className="min-h-screen flex items-center justify-center bg-slate-100 p-4">
     <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-sm">
-      <div className="flex items-center gap-2 mb-5"><div className="w-9 h-9 rounded-lg bg-teal-500 flex items-center justify-center text-white font-bold">T</div><div className="text-xl font-bold text-slate-800">Trade Hub</div></div>
+      <div className="flex items-center gap-2 mb-5"><div className="w-9 h-9 rounded-xl logo-grad flex items-center justify-center text-white font-bold">T</div><div className="text-xl font-bold text-slate-800">Trade Hub</div></div>
       <div className="text-sm text-slate-500 mb-4">{mode==='in'?'Sign in to continue':'Create your account'}</div>
       <input className={inp} placeholder="Email" value={email} onChange={e=>setEmail(e.target.value)}/>
       <input className={inp} type="password" placeholder="Password" value={pw} onChange={e=>setPw(e.target.value)} onKeyDown={e=>e.key==='Enter'&&submit()}/>
-      <button onClick={submit} className="w-full bg-teal-600 hover:bg-teal-700 text-white rounded-lg py-2 text-sm font-medium">{mode==='in'?'Sign in':'Sign up'}</button>
+      <button onClick={submit} className="w-full bg-emerald-600 hover:bg-emerald-700 btn-em text-white rounded-lg py-2 text-sm font-medium">{mode==='in'?'Sign in':'Sign up'}</button>
       {msg&&<div className="text-xs text-slate-500 mt-3">{msg}</div>}
-      <button onClick={()=>{setMode(mode==='in'?'up':'in');setMsg('');}} className="text-xs text-teal-600 mt-4">{mode==='in'?'Need an account? Sign up':'Have an account? Sign in'}</button>
+      <button onClick={()=>{setMode(mode==='in'?'up':'in');setMsg('');}} className="text-xs text-emerald-600 mt-4">{mode==='in'?'Need an account? Sign up':'Have an account? Sign in'}</button>
     </div>
   </div>);
 }
@@ -262,14 +279,14 @@ function App(){
   const counts={products:data.products.length,manufacturers:data.manufacturers.length,retailers:data.retailers.length,tasks:openTasks.length,contacts:data.contacts.length,documents:data.documents.length,pipeline:data.opportunities.length};
 
   const Sidebar=()=>(
-    <aside className="w-60 bg-slate-900 text-slate-300 flex flex-col fixed inset-y-0 left-0">
+    <aside className="w-60 sidebar-grad text-slate-300 flex flex-col fixed inset-y-0 left-0 border-r border-white/5">
       <div className="h-16 flex items-center gap-2 px-5 border-b border-white/10">
-        <div className="w-8 h-8 rounded-lg bg-teal-500 flex items-center justify-center text-white font-bold">T</div>
-        <div className="text-white font-semibold tracking-tight">Trade Hub</div>
+        <div className="w-8 h-8 rounded-xl logo-grad flex items-center justify-center text-white font-bold text-[15px]">T</div>
+        <div className="text-white font-semibold tracking-tight text-[15px]">Trade Hub</div>
       </div>
       <nav className="flex-1 p-3 space-y-1 overflow-auto">
         {NAV.map(([k,l,ic])=>(
-          <button key={k} onClick={()=>{setTab(k);setQ('');}} className={'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition '+(tab===k?'bg-teal-500/15 text-white':'hover:bg-white/5')}>
+          <button key={k} onClick={()=>{setTab(k);setQ('');}} className={'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition '+(tab===k?'bg-emerald-500/15 text-white ring-1 ring-inset ring-emerald-400/20':'hover:bg-white/5')}>
             <Icon d={ic} className="w-[18px] h-[18px]"/><span className="flex-1 text-left">{l}</span>
             {counts[k]!=null && <span className="text-xs bg-white/10 rounded-full px-1.5 py-0.5 min-w-[20px] text-center">{counts[k]}</span>}
           </button>
@@ -285,25 +302,25 @@ function App(){
   );
 
   const Topbar=({title})=>(
-    <div className="h-16 bg-white border-b border-slate-200 flex items-center gap-4 px-6 sticky top-0 z-30">
-      <h1 className="text-lg font-semibold text-slate-800 capitalize">{title}</h1>
+    <div className="h-16 bg-white/80 backdrop-blur-md border-b border-slate-200/70 flex items-center gap-4 px-6 sticky top-0 z-30">
+      <h1 className="text-[17px] font-semibold text-slate-900 capitalize tracking-tight">{title}</h1>
       {tab!=='dashboard' && tab!=='pipeline' && (
         <div className="relative ml-2">
           <span className="absolute left-3 top-2.5 text-slate-400"><Icon d={Ic.search} className="w-4 h-4"/></span>
-          <input value={q} onChange={e=>setQ(e.target.value)} placeholder="Search..." className="pl-9 pr-3 py-2 w-72 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"/>
+          <input value={q} onChange={e=>setQ(e.target.value)} placeholder="Search..." className="pl-9 pr-3 py-2 w-72 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"/>
         </div>
       )}
       <div className="ml-auto flex items-center gap-2">
-        {SING[tab] && <button onClick={()=>setModal({entity:tab,record:null})} className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium"><Icon d={Ic.plus} className="w-4 h-4"/> New {SING[tab]}</button>}
+        {SING[tab] && <button onClick={()=>setModal({entity:tab,record:null})} className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 btn-em text-white text-sm font-medium"><Icon d={Ic.plus} className="w-4 h-4"/> New {SING[tab]}</button>}
       </div>
     </div>
   );
 
   /* ---- dashboard ---- */
   const KPI=({label,value,sub,accent})=>(
-    <div className="bg-white rounded-2xl border border-slate-200 p-5">
+    <div className="bg-white rounded-2xl border border-slate-200/70 card-elev p-5">
       <div className="text-xs uppercase tracking-wide text-slate-400">{label}</div>
-      <div className={'text-3xl font-bold mt-1 '+(accent||'text-slate-800')}>{value}</div>
+      <div className={'text-3xl font-bold mt-1 tnum tracking-tight '+(accent||'text-slate-800')}>{value}</div>
       {sub&&<div className="text-xs text-slate-400 mt-1">{sub}</div>}
     </div>
   );
@@ -317,16 +334,16 @@ function App(){
         <KPI label="Data readiness" value={readinessAvg+'%'} sub="avg across products"/>
       </div>
       <div className="grid lg:grid-cols-3 gap-4">
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 lg:col-span-2">
-          <div className="font-semibold text-slate-700 mb-4 flex items-center gap-2"><Icon d={Ic.pipe} className="w-4 h-4 text-teal-600"/> Pipeline by stage</div>
+        <div className="bg-white rounded-2xl border border-slate-200/70 card-elev p-5 lg:col-span-2">
+          <div className="font-semibold text-slate-700 mb-4 flex items-center gap-2"><Icon d={Ic.pipe} className="w-4 h-4 text-emerald-600"/> Pipeline by stage</div>
           {STAGES.filter(s=>s!=='dropped').map(s=>{const n=data.opportunities.filter(o=>o.stage===s).length;return(
             <div key={s} className="flex items-center gap-3 mb-2">
               <div className="w-24"><StageTag s={s}/></div>
-              <div className="flex-1 bg-slate-100 rounded-full h-2.5"><div className="bg-teal-500 h-2.5 rounded-full transition-all" style={{width:Math.min(n/Math.max(1,data.opportunities.length)*100,100)+'%'}}></div></div>
+              <div className="flex-1 bg-slate-100 rounded-full h-2.5"><div className="bg-emerald-500 h-2.5 rounded-full transition-all" style={{width:Math.min(n/Math.max(1,data.opportunities.length)*100,100)+'%'}}></div></div>
               <div className="text-sm text-slate-500 w-6 text-right">{n}</div>
             </div>);})}
         </div>
-        <div className="bg-white rounded-2xl border border-slate-200 p-5">
+        <div className="bg-white rounded-2xl border border-slate-200/70 card-elev p-5">
           <div className="font-semibold text-slate-700 mb-3 flex items-center gap-2"><Icon d={Ic.flag} className="w-4 h-4 text-amber-500"/> Data / compliance flags</div>
           <div className="space-y-1.5">
             {gaps.map(p=>(<button key={p.id} onClick={()=>setDrawer({type:'product',id:p.id})} className="w-full flex items-center justify-between text-sm py-1 hover:bg-slate-50 rounded px-1"><span className="text-slate-600 truncate">{p.name}</span><Badge value={p.data_status}/></button>))}
@@ -334,14 +351,14 @@ function App(){
         </div>
       </div>
       <div className="grid lg:grid-cols-2 gap-4">
-        <div className="bg-white rounded-2xl border border-slate-200 p-5">
+        <div className="bg-white rounded-2xl border border-slate-200/70 card-elev p-5">
           <div className="font-semibold text-slate-700 mb-3">Priority tasks</div>
           {openTasks.slice().sort((a,b)=>(a.priority>b.priority?1:-1)).slice(0,6).map(t=>(
             <button key={t.id} onClick={()=>setModal({entity:'tasks',record:t})} className="w-full flex items-center gap-3 py-2 border-b border-slate-100 last:border-0 text-left hover:bg-slate-50 rounded px-1">
               <Pri p={t.priority}/><span className="flex-1 text-sm text-slate-700">{t.title}</span><span className="text-xs text-slate-400">{t.owner}</span>
                      </button>))}
         </div>
-        <div className="bg-white rounded-2xl border border-slate-200 p-5">
+        <div className="bg-white rounded-2xl border border-slate-200/70 card-elev p-5">
           <div className="font-semibold text-slate-700 mb-3">Opportunities by manufacturer</div>
           {data.manufacturers.map(m=>{const n=data.opportunities.filter(o=>byId('products',o.product_id).manufacturer_id===m.id).length;return(
             <button key={m.id} onClick={()=>setDrawer({type:'manufacturer',id:m.id})} className="w-full flex items-center justify-between py-1.5 text-sm hover:bg-slate-50 rounded px-1">
@@ -361,14 +378,14 @@ function App(){
         <div className="flex items-start justify-between gap-2">
           <div className="font-medium text-slate-800 leading-tight">{pName(o.product_id)}</div>
           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition flex-shrink-0">
-            <button onClick={(e)=>{e.stopPropagation();setModal({entity:'opportunities',record:o});}} className="text-slate-300 hover:text-teal-600" title="Edit details"><Icon d={Ic.edit} className="w-3.5 h-3.5"/></button>
+            <button onClick={(e)=>{e.stopPropagation();setModal({entity:'opportunities',record:o});}} className="text-slate-300 hover:text-emerald-600" title="Edit details"><Icon d={Ic.edit} className="w-3.5 h-3.5"/></button>
             <button onClick={(e)=>{e.stopPropagation();if(confirm('Delete this card?'))remove('opportunities',o.id);}} className="text-slate-300 hover:text-rose-500" title="Delete card"><Icon d={Ic.trash} className="w-3.5 h-3.5"/></button>
           </div>
         </div>
         <div className="text-xs text-slate-500 mt-0.5">{rName(o.retailer_id)}</div>
         {o.target_volume&&<div className="text-xs text-slate-400 mt-1.5">Vol: {o.target_volume}</div>}
         {o.value_estimate&&<div className="text-xs text-slate-400 mt-0.5">Est: £{o.value_estimate}/yr</div>}
-        {o.next_action&&<div className="text-xs text-teal-600 mt-1 leading-tight">Next: {o.next_action}</div>}
+        {o.next_action&&<div className="text-xs text-emerald-600 mt-1 leading-tight">Next: {o.next_action}</div>}
         <div className="flex items-center justify-between mt-2 text-xs text-slate-400"><span>{o.owner||''}</span><span className="text-slate-300">drag to move</span></div>
       </div>);
     const board=(opps,prefill)=>(
@@ -376,7 +393,7 @@ function App(){
         {stages.map(s=>{const list=opps.filter(o=>o.stage===s);return(
           <div key={s} onDragOver={e=>e.preventDefault()} onDrop={()=>{if(drag)setStage(drag,s);setDrag(null);}}
             className="bg-slate-100/70 rounded-2xl w-72 flex-shrink-0 flex flex-col">
-            <div className="px-4 py-3 flex items-center justify-between"><StageTag s={s}/><div className="flex items-center gap-2"><span className="text-xs text-slate-400">{list.length}</span><button onClick={()=>setModal({entity:'opportunities',record:{stage:s,...prefill}})} className="text-slate-400 hover:text-teal-600" title="Add product to this stage"><Icon d={Ic.plus} className="w-4 h-4"/></button></div></div>
+            <div className="px-4 py-3 flex items-center justify-between"><StageTag s={s}/><div className="flex items-center gap-2"><span className="text-xs text-slate-400">{list.length}</span><button onClick={()=>setModal({entity:'opportunities',record:{stage:s,...prefill}})} className="text-slate-400 hover:text-emerald-600" title="Add product to this stage"><Icon d={Ic.plus} className="w-4 h-4"/></button></div></div>
             <div className="px-2 pb-2 space-y-2 min-h-[60px]">{list.map(card)}</div>
           </div>);})}
       </div>);
@@ -384,16 +401,16 @@ function App(){
     return(<div className="p-6">
       <div className="flex items-center gap-3 mb-4">
         <div className="inline-flex rounded-lg border border-slate-200 overflow-hidden text-sm">
-          <button onClick={()=>setGrp('stage')} className={'px-3 py-1.5 '+(grp==='stage'?'bg-teal-600 text-white':'bg-white text-slate-600 hover:bg-slate-50')}>By stage</button>
-          <button onClick={()=>setGrp('retailer')} className={'px-3 py-1.5 '+(grp==='retailer'?'bg-teal-600 text-white':'bg-white text-slate-600 hover:bg-slate-50')}>By retailer</button>
+          <button onClick={()=>setGrp('stage')} className={'px-3 py-1.5 '+(grp==='stage'?'bg-emerald-600 text-white':'bg-white text-slate-600 hover:bg-slate-50')}>By stage</button>
+          <button onClick={()=>setGrp('retailer')} className={'px-3 py-1.5 '+(grp==='retailer'?'bg-emerald-600 text-white':'bg-white text-slate-600 hover:bg-slate-50')}>By retailer</button>
         </div>
-        <button onClick={()=>setModal({entity:'opportunities',record:{stage:'idea'}})} className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium"><Icon d={Ic.plus} className="w-4 h-4"/> Add product</button>
+        <button onClick={()=>setModal({entity:'opportunities',record:{stage:'idea'}})} className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 btn-em text-white text-sm font-medium"><Icon d={Ic.plus} className="w-4 h-4"/> Add product</button>
       </div>
       {grp==='stage' && board(data.opportunities,{})}
       {grp==='retailer' && <div className="space-y-7">
         {data.retailers.filter(r=>data.opportunities.some(o=>o.retailer_id===r.id)).map(r=>(
           <div key={r.id}>
-            <div className="flex items-center gap-2 mb-2"><div className="font-semibold text-slate-700">{r.name}</div><span className="text-xs text-slate-400">{data.opportunities.filter(o=>o.retailer_id===r.id).length}</span><button onClick={()=>setModal({entity:'opportunities',record:{stage:'idea',retailer_id:r.id}})} className="text-xs text-teal-600 hover:underline ml-1">+ add product</button></div>
+            <div className="flex items-center gap-2 mb-2"><div className="font-semibold text-slate-700">{r.name}</div><span className="text-xs text-slate-400">{data.opportunities.filter(o=>o.retailer_id===r.id).length}</span><button onClick={()=>setModal({entity:'opportunities',record:{stage:'idea',retailer_id:r.id}})} className="text-xs text-emerald-600 hover:underline ml-1">+ add product</button></div>
             {board(data.opportunities.filter(o=>o.retailer_id===r.id),{retailer_id:r.id})}
           </div>))}
         {orphan.length>0 && <div><div className="font-semibold text-slate-700 mb-2">Unassigned retailer</div>{board(orphan,{})}</div>}
@@ -417,7 +434,7 @@ function App(){
         clr £/kg <input type="number" step="any" value={clr} onChange={e=>setClr(Number(e.target.value))} className={inp}/></div>
       <div className="bg-slate-50 rounded-lg p-3 grid grid-cols-3 gap-2 text-center">
         <div><div className="text-[10px] text-slate-400 uppercase">GBP/kg</div><div className="font-semibold">£{gbpkg.toFixed(3)}</div></div>
-        <div><div className="text-[10px] text-slate-400 uppercase">Landed £/kg</div><div className="font-semibold text-teal-700">£{landedKg.toFixed(3)}</div></div>
+        <div><div className="text-[10px] text-slate-400 uppercase">Landed £/kg</div><div className="font-semibold text-emerald-700">£{landedKg.toFixed(3)}</div></div>
         <div><div className="text-[10px] text-slate-400 uppercase">Landed £/pack</div><div className="font-semibold">{perPack!=null?'£'+perPack.toFixed(2):'-'}</div></div>
       </div>
       <div className="text-[10px] text-slate-400">Indicative. Duty depends on cooked status and meat %.</div>
@@ -455,7 +472,7 @@ function App(){
         <div className="flex items-start justify-between px-6 py-4 border-b border-slate-100 sticky top-0 bg-white">
           <h3 className="font-semibold text-slate-800 pr-4">{title}</h3>
           <div className="flex items-center gap-1 flex-shrink-0">
-            {DCOLL[drawer.type] && <button onClick={()=>{const rec=byId(DCOLL[drawer.type],drawer.id); setDrawer(null); setModal({entity:DCOLL[drawer.type],record:rec});}} className="text-slate-400 hover:text-teal-600 p-1" title="Edit"><Icon d={Ic.edit} className="w-4 h-4"/></button>}
+            {DCOLL[drawer.type] && <button onClick={()=>{const rec=byId(DCOLL[drawer.type],drawer.id); setDrawer(null); setModal({entity:DCOLL[drawer.type],record:rec});}} className="text-slate-400 hover:text-emerald-600 p-1" title="Edit"><Icon d={Ic.edit} className="w-4 h-4"/></button>}
             {DCOLL[drawer.type] && <button onClick={()=>{if(confirm('Delete this record?')){remove(DCOLL[drawer.type],drawer.id);setDrawer(null);}}} className="text-slate-400 hover:text-rose-500 p-1" title="Delete"><Icon d={Ic.trash} className="w-4 h-4"/></button>}
             <button onClick={()=>setDrawer(null)} className="text-slate-400 hover:text-slate-700 p-1"><Icon d={Ic.x}/></button>
           </div>
@@ -471,7 +488,7 @@ function App(){
   const RelMap=()=>{
     const mans=data.manufacturers, rets=data.retailers;
     const prodMan={}; data.products.forEach(p=>{prodMan[p.id]=p.manufacturer_id;});
-    const model=(m)=>{const n=((m&&m.name)||'').toLowerCase(); if(n.includes('aldelis')||n.includes('pekish')) return {label:'Commission 3-5%',color:'#0d9488'}; if(n.includes('minhe')) return {label:'Buy & resell ~35%',color:'#4f46e5'}; if(n.includes('korean')) return {label:'NPD, tariff TBC',color:'#d97706'}; return {label:((m&&m.status)||'Concept'),color:'#64748b'};};
+    const model=(m)=>{const n=((m&&m.name)||'').toLowerCase(); if(n.includes('aldelis')||n.includes('pekish')) return {label:'Commission 3-5%',color:'#059669'}; if(n.includes('minhe')) return {label:'Buy & resell ~35%',color:'#4f46e5'}; if(n.includes('korean')) return {label:'NPD, tariff TBC',color:'#d97706'}; return {label:((m&&m.status)||'Concept'),color:'#64748b'};};
     const skuCount=(mid)=>data.products.filter(p=>p.manufacturer_id===mid).length;
     const dealCount=(mid)=>data.opportunities.filter(o=>prodMan[o.product_id]===mid).length;
     const pairs={}; data.opportunities.forEach(o=>{const mid=prodMan[o.product_id]; if(!mid||!o.retailer_id)return; const k=mid+'|'+o.retailer_id; if(!pairs[k])pairs[k]={mid,rid:o.retailer_id,opps:[]}; pairs[k].opps.push(o);});
@@ -484,10 +501,10 @@ function App(){
     return(<div className="p-6 space-y-6">
       <div className="flex items-center gap-4 text-xs text-slate-500 flex-wrap">
         <span className="font-semibold text-slate-600">Relationship map</span>
-        <Leg c="#0d9488" t="Commission (Aldelis)"/><Leg c="#4f46e5" t="Buy & resell (Minhe)"/><Leg c="#d97706" t="NPD / other"/>
+        <Leg c="#059669" t="Commission (Aldelis)"/><Leg c="#4f46e5" t="Buy & resell (Minhe)"/><Leg c="#d97706" t="NPD / other"/>
         <span className="ml-auto">Lines = active deals (manufacturer to retailer). Hover a line, click a node.</span>
       </div>
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-x-auto">
+      <div className="bg-white rounded-2xl border border-slate-200/70 card-elev overflow-x-auto">
         <svg width={W} height={colH} className="min-w-full">
           <text x={leftX} y={16} fontSize="11" fill="#94a3b8" fontWeight="600">MANUFACTURERS</text>
           <text x={rightX} y={16} fontSize="11" fill="#94a3b8" fontWeight="600">RETAILERS</text>
@@ -497,7 +514,7 @@ function App(){
         </svg>
       </div>
       <div><div className="text-sm font-semibold text-slate-700 mb-2">Commission &amp; margin models</div><div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {mans.map(m=>{const md=model(m); return <div key={m.id} className="bg-white rounded-2xl border border-slate-200 p-4"><div className="flex items-center gap-2"><span className="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0" style={{background:md.color}}></span><div className="font-semibold text-slate-800 text-sm leading-tight">{m.name}</div></div><div className="text-xs font-medium mt-2" style={{color:md.color}}>{md.label}</div><div className="text-xs text-slate-400 mt-1">{skuCount(m.id)+' products · '+dealCount(m.id)+' deals'}</div></div>;})}
+        {mans.map(m=>{const md=model(m); return <div key={m.id} className="bg-white rounded-2xl border border-slate-200/70 card-elev p-4"><div className="flex items-center gap-2"><span className="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0" style={{background:md.color}}></span><div className="font-semibold text-slate-800 text-sm leading-tight">{m.name}</div></div><div className="text-xs font-medium mt-2" style={{color:md.color}}>{md.label}</div><div className="text-xs text-slate-400 mt-1">{skuCount(m.id)+' products · '+dealCount(m.id)+' deals'}</div></div>;})}
       </div></div>
     </div>);
   };
@@ -518,7 +535,7 @@ function App(){
     const missing=rows.filter(r=>r.val===0).length;
     const byMfr={}; rows.forEach(r=>{const k=r.mid||'?'; byMfr[k]=byMfr[k]||{val:0,wval:0,comm:r.comm,n:0}; byMfr[k].val+=r.val; byMfr[k].wval+=r.wval; byMfr[k].n++;});
     const byStage=STAGES.filter(s=>s!=='dropped').map(s=>{const rs=rows.filter(r=>r.o.stage===s); return {s,n:rs.length,val:rs.reduce((a,b)=>a+b.val,0),prob:PROB[s],wval:rs.reduce((a,b)=>a+b.wval,0)};});
-    const card=(label,value,sub)=>(<div className="bg-white rounded-2xl border border-slate-200 p-4"><div className="text-xs text-slate-400">{label}</div><div className="text-2xl font-bold text-slate-800 mt-1">{value}</div>{sub&&<div className="text-xs text-slate-400 mt-1">{sub}</div>}</div>);
+    const card=(label,value,sub)=>(<div className="bg-white rounded-2xl border border-slate-200/70 card-elev p-4"><div className="text-xs text-slate-400">{label}</div><div className="text-2xl font-bold text-slate-800 mt-1 tnum">{value}</div>{sub&&<div className="text-xs text-slate-400 mt-1">{sub}</div>}</div>);
     return(<div className="p-6 space-y-6">
       <div className="flex items-center gap-3 flex-wrap bg-white rounded-xl border border-slate-200 p-3">
         <div className="text-xs font-medium text-slate-600">Minhe resale gross margin</div>
@@ -531,13 +548,13 @@ function App(){
         {card('Weighted Minhe margin',money(resaleMargin),margin+'% on weighted resale')}
         {card('Weighted Aldelis commission',money(commAt(0.03))+' / '+money(commAt(0.04))+' / '+money(commAt(0.05)),'at 3% / 4% / 5%')}
       </div>
-      <div className="bg-teal-50 border border-teal-100 rounded-2xl p-4"><div className="text-xs text-teal-700 font-semibold mb-1">Weighted income to us (Minhe margin + Aldelis commission)</div><div className="text-xl font-bold text-teal-800">{money(incomeAt(0.03))} – {money(incomeAt(0.05))} <span className="text-sm font-normal text-teal-600">/yr (Aldelis 3% to 5%)</span></div></div>
+      <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4"><div className="text-xs text-emerald-700 font-semibold mb-1">Weighted income to us (Minhe margin + Aldelis commission)</div><div className="text-xl font-bold text-emerald-800">{money(incomeAt(0.03))} – {money(incomeAt(0.05))} <span className="text-sm font-normal text-emerald-600">/yr (Aldelis 3% to 5%)</span></div></div>
       {missing>0 && <div className="text-xs text-amber-600">{missing} of {rows.length} opportunities have no annual value yet. Add "Value est (£/yr)" on a pipeline card to include it.</div>}
       <div className="grid lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden"><div className="px-4 py-3 text-sm font-semibold text-slate-700 border-b border-slate-100">By stage</div><table className="w-full text-sm"><thead className="text-xs text-slate-400"><tr><th className="text-left px-4 py-2">Stage</th><th className="text-right px-4 py-2">#</th><th className="text-right px-4 py-2">Sell-in</th><th className="text-right px-4 py-2">Wt</th><th className="text-right px-4 py-2">Weighted</th></tr></thead><tbody>{byStage.map(r=>(<tr key={r.s} className="border-t border-slate-100"><td className="px-4 py-2"><StageTag s={r.s}/></td><td className="px-4 py-2 text-right text-slate-500">{r.n}</td><td className="px-4 py-2 text-right">{money(r.val)}</td><td className="px-4 py-2 text-right text-slate-400">{Math.round(r.prob*100)}%</td><td className="px-4 py-2 text-right font-medium">{money(r.wval)}</td></tr>))}</tbody></table></div>
-        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden"><div className="px-4 py-3 text-sm font-semibold text-slate-700 border-b border-slate-100">By manufacturer</div><table className="w-full text-sm"><thead className="text-xs text-slate-400"><tr><th className="text-left px-4 py-2">Manufacturer</th><th className="text-left px-4 py-2">Model</th><th className="text-right px-4 py-2">Weighted sell-in</th><th className="text-right px-4 py-2">Your income</th></tr></thead><tbody>{Object.entries(byMfr).map(([k,v])=>(<tr key={k} className="border-t border-slate-100"><td className="px-4 py-2">{mName(k)}</td><td className="px-4 py-2 text-xs text-slate-500">{v.comm?'Commission':'Resale margin'}</td><td className="px-4 py-2 text-right">{money(v.wval)}</td><td className="px-4 py-2 text-right font-medium">{v.comm?(money(v.wval*0.03)+' – '+money(v.wval*0.05)):money(v.wval*mpct)}</td></tr>))}</tbody></table></div>
+        <div className="bg-white rounded-2xl border border-slate-200/70 card-elev overflow-hidden"><div className="px-4 py-3 text-sm font-semibold text-slate-700 border-b border-slate-100">By stage</div><table className="w-full text-sm"><thead className="text-xs text-slate-400"><tr><th className="text-left px-4 py-2">Stage</th><th className="text-right px-4 py-2">#</th><th className="text-right px-4 py-2">Sell-in</th><th className="text-right px-4 py-2">Wt</th><th className="text-right px-4 py-2">Weighted</th></tr></thead><tbody>{byStage.map(r=>(<tr key={r.s} className="border-t border-slate-100"><td className="px-4 py-2"><StageTag s={r.s}/></td><td className="px-4 py-2 text-right text-slate-500">{r.n}</td><td className="px-4 py-2 text-right">{money(r.val)}</td><td className="px-4 py-2 text-right text-slate-400">{Math.round(r.prob*100)}%</td><td className="px-4 py-2 text-right font-medium">{money(r.wval)}</td></tr>))}</tbody></table></div>
+        <div className="bg-white rounded-2xl border border-slate-200/70 card-elev overflow-hidden"><div className="px-4 py-3 text-sm font-semibold text-slate-700 border-b border-slate-100">By manufacturer</div><table className="w-full text-sm"><thead className="text-xs text-slate-400"><tr><th className="text-left px-4 py-2">Manufacturer</th><th className="text-left px-4 py-2">Model</th><th className="text-right px-4 py-2">Weighted sell-in</th><th className="text-right px-4 py-2">Your income</th></tr></thead><tbody>{Object.entries(byMfr).map(([k,v])=>(<tr key={k} className="border-t border-slate-100"><td className="px-4 py-2">{mName(k)}</td><td className="px-4 py-2 text-xs text-slate-500">{v.comm?'Commission':'Resale margin'}</td><td className="px-4 py-2 text-right">{money(v.wval)}</td><td className="px-4 py-2 text-right font-medium">{v.comm?(money(v.wval*0.03)+' – '+money(v.wval*0.05)):money(v.wval*mpct)}</td></tr>))}</tbody></table></div>
       </div>
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden"><div className="px-4 py-3 text-sm font-semibold text-slate-700 border-b border-slate-100">By opportunity</div><div className="overflow-x-auto"><table className="w-full text-sm"><thead className="text-xs text-slate-400"><tr><th className="text-left px-4 py-2">Product</th><th className="text-left px-4 py-2">Retailer</th><th className="text-left px-4 py-2">Stage</th><th className="text-right px-4 py-2">Annual value</th><th className="text-right px-4 py-2">Weighted</th><th className="text-right px-4 py-2">Your income</th></tr></thead><tbody>{rows.map(r=>(<tr key={r.o.id} className="border-t border-slate-100 hover:bg-slate-50 cursor-pointer" onClick={()=>setDrawer({type:'opportunity',id:r.o.id})}><td className="px-4 py-2">{pName(r.o.product_id)}</td><td className="px-4 py-2 text-slate-500">{rName(r.o.retailer_id)}</td><td className="px-4 py-2"><StageTag s={r.o.stage}/></td><td className="px-4 py-2 text-right">{money(r.val)}</td><td className="px-4 py-2 text-right">{money(r.wval)}</td><td className="px-4 py-2 text-right font-medium">{r.comm?(money(r.wval*0.03)+' – '+money(r.wval*0.05)):money(r.wval*mpct)}</td></tr>))}{rows.length===0&&<tr><td colSpan="6" className="px-4 py-8 text-center text-slate-400">No opportunities yet.</td></tr>}</tbody></table></div></div>
+      <div className="bg-white rounded-2xl border border-slate-200/70 card-elev overflow-hidden"><div className="px-4 py-3 text-sm font-semibold text-slate-700 border-b border-slate-100">By opportunity</div><div className="overflow-x-auto"><table className="w-full text-sm"><thead className="text-xs text-slate-400"><tr><th className="text-left px-4 py-2">Product</th><th className="text-left px-4 py-2">Retailer</th><th className="text-left px-4 py-2">Stage</th><th className="text-right px-4 py-2">Annual value</th><th className="text-right px-4 py-2">Weighted</th><th className="text-right px-4 py-2">Your income</th></tr></thead><tbody>{rows.map(r=>(<tr key={r.o.id} className="border-t border-slate-100 hover:bg-slate-50 cursor-pointer" onClick={()=>setDrawer({type:'opportunity',id:r.o.id})}><td className="px-4 py-2">{pName(r.o.product_id)}</td><td className="px-4 py-2 text-slate-500">{rName(r.o.retailer_id)}</td><td className="px-4 py-2"><StageTag s={r.o.stage}/></td><td className="px-4 py-2 text-right">{money(r.val)}</td><td className="px-4 py-2 text-right">{money(r.wval)}</td><td className="px-4 py-2 text-right font-medium">{r.comm?(money(r.wval*0.03)+' – '+money(r.wval*0.05)):money(r.wval*mpct)}</td></tr>))}{rows.length===0&&<tr><td colSpan="6" className="px-4 py-8 text-center text-slate-400">No opportunities yet.</td></tr>}</tbody></table></div></div>
     </div>);
   };
 
@@ -559,7 +576,7 @@ function App(){
         {key:'pack_size_g',label:'Pack g'},
         {key:'cost_value',label:'Cost',render:r=>r.cost_value!=null?(r.cost_value+' '+(r.cost_currency||'')):'-'},
         {key:'tariff_status',label:'Tariff',render:r=><Badge value={r.tariff_status}/>,sortable:false},
-        {key:'data_status',label:'Data',render:r=><div className="flex items-center gap-2"><div className="w-12 bg-slate-100 rounded-full h-1.5"><div className="bg-teal-500 h-1.5 rounded-full" style={{width:readiness(r)+'%'}}></div></div><Badge value={r.data_status}/></div>,sortable:false},
+        {key:'data_status',label:'Data',render:r=><div className="flex items-center gap-2"><div className="w-12 bg-slate-100 rounded-full h-1.5"><div className="bg-emerald-500 h-1.5 rounded-full" style={{width:readiness(r)+'%'}}></div></div><Badge value={r.data_status}/></div>,sortable:false},
       ]} setModal={setModal} setDrawer={setDrawer} remove={remove} q={q}/>}
       {tab==='manufacturers'&&<TableWrap coll="manufacturers" rows={manRows.filter(r=>match(r.name))} cols={[
         {key:'name',label:'Name'},{key:'country',label:'Country'},{key:'format',label:'Format'},{key:'status',label:'Status'},{key:'gb_approval',label:'GB approval'},{key:'agent',label:'Agent'},
@@ -568,7 +585,7 @@ function App(){
         {key:'name',label:'Name'},{key:'type',label:'Type'},{key:'region',label:'Region'},{key:'store_count',label:'Stores'},{key:'status',label:'Status'},
       ]} setModal={setModal} setDrawer={setDrawer} remove={remove} q={q}/>}
       {tab==='tasks'&&<TableWrap coll="tasks" rows={data.tasks.filter(r=>match(r.title))} cols={[
-        {key:'status',label:'',render:r=><input type="checkbox" checked={r.status==='done'} onChange={e=>{e.stopPropagation();toggleTask(r.id);}} className="h-4 w-4 accent-teal-600"/>,sortable:false,click:false},
+        {key:'status',label:'',render:r=><input type="checkbox" checked={r.status==='done'} onChange={e=>{e.stopPropagation();toggleTask(r.id);}} className="h-4 w-4 accent-emerald-600"/>,sortable:false,click:false},
         {key:'priority',label:'Pri',render:r=><Pri p={r.priority}/>},
         {key:'title',label:'Task',render:r=><span className={r.status==='done'?'line-through text-slate-400':''}>{r.title}</span>},
         {key:'owner',label:'Owner'},
@@ -577,8 +594,8 @@ function App(){
       {tab==='contacts'&&<TableWrap coll="contacts" rows={data.contacts.filter(r=>match(r.name))} cols={[
         {key:'name',label:'Name'},{key:'role',label:'Role'},{key:'email',label:'Email'},{key:'phone',label:'Phone'},{key:'manufacturer_id',label:'Manufacturer',render:r=>r.manufacturer_id?mName(r.manufacturer_id):(r.retailer_id?rName(r.retailer_id):'-'),sortable:false},
       ]} setModal={setModal} setDrawer={setDrawer} remove={remove} q={q}/>}
-      {tab==='documents'&&<div><div className="px-6 pt-6"><input type="file" id="docfile" onChange={onPickFile} className="hidden"/><button onClick={()=>document.getElementById('docfile').click()} className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium"><Icon d={Ic.plus} className="w-4 h-4"/> Upload file</button><span className="ml-3 text-xs text-slate-400">PDFs, images, spreadsheets. Stored privately, opens via a secure link.</span></div><TableWrap coll="documents" rows={data.documents.filter(r=>match(r.title))} cols={[
-        {key:'title',label:'Title',render:r=>r.url?<button onClick={(e)=>{e.stopPropagation();openDoc(r);}} className="text-teal-600 hover:underline text-left">{r.title}</button>:r.title},
+      {tab==='documents'&&<div><div className="px-6 pt-6"><input type="file" id="docfile" onChange={onPickFile} className="hidden"/><button onClick={()=>document.getElementById('docfile').click()} className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 btn-em text-white text-sm font-medium"><Icon d={Ic.plus} className="w-4 h-4"/> Upload file</button><span className="ml-3 text-xs text-slate-400">PDFs, images, spreadsheets. Stored privately, opens via a secure link.</span></div><TableWrap coll="documents" rows={data.documents.filter(r=>match(r.title))} cols={[
+        {key:'title',label:'Title',render:r=>r.url?<button onClick={(e)=>{e.stopPropagation();openDoc(r);}} className="text-emerald-600 hover:underline text-left">{r.title}</button>:r.title},
         {key:'type',label:'Type'},{key:'manufacturer_id',label:'Linked',render:r=>r.manufacturer_id?mName(r.manufacturer_id):(r.product_id?pName(r.product_id):'-'),sortable:false},
       ]} setModal={setModal} setDrawer={setDrawer} remove={remove} q={q}/></div>}
     </div>
@@ -592,15 +609,15 @@ function TableWrap({coll,rows,cols,setModal,setDrawer,remove,q}){
   const [sort,setSort]=useState(null);
   let r=rows;
   if(sort){ r=[...rows].sort((a,b)=>{const x=a[sort.key],y=b[sort.key]; if(x==null)return 1; if(y==null)return -1; return (x>y?1:-1)*sort.dir;}); }
-  return(<div className="p-6"><div className="bg-white rounded-2xl border border-slate-200 overflow-hidden"><div className="overflow-x-auto">
-    <table className="w-full text-sm"><thead className="bg-slate-50 text-slate-400 text-xs uppercase tracking-wide"><tr>
+  return(<div className="p-6"><div className="bg-white rounded-2xl border border-slate-200/70 card-elev overflow-hidden"><div className="overflow-x-auto">
+    <table className="w-full text-sm"><thead className="bg-slate-50/80 backdrop-blur text-slate-500 text-[11px] uppercase tracking-wider"><tr>
       {cols.map(c=><th key={c.key} onClick={()=>c.sortable!==false&&setSort(s=>({key:c.key,dir:s&&s.key===c.key?-s.dir:1}))} className={'text-left font-medium px-4 py-3 '+(c.sortable!==false?'cursor-pointer select-none hover:text-slate-600':'')}>{c.label}{sort&&sort.key===c.key?(sort.dir>0?' ↑':' ↓'):''}</th>)}<th className="w-20"></th>
     </tr></thead><tbody>
       {r.length===0&&<tr><td colSpan={cols.length+1} className="px-4 py-10 text-center text-slate-400">No records.</td></tr>}
       {r.map(row=>(<tr key={row.id} className="border-t border-slate-100 hover:bg-slate-50/70">
         {cols.map((c,i)=><td key={c.key} onClick={()=>{if(c.click!==false&&row.__drawer)setDrawer(row.__drawer);}} className={'px-4 py-3 text-slate-600 align-top '+(i===0&&row.__drawer?'cursor-pointer font-medium text-slate-800':'')}>{c.render?c.render(row):(row[c.key]??'-')}</td>)}
         <td className="px-4 py-3 text-right whitespace-nowrap">
-          <button onClick={()=>setModal({entity:coll,record:row})} className="text-slate-400 hover:text-teal-600 mr-2 inline-flex"><Icon d={Ic.edit} className="w-4 h-4"/></button>
+          <button onClick={()=>setModal({entity:coll,record:row})} className="text-slate-400 hover:text-emerald-600 mr-2 inline-flex"><Icon d={Ic.edit} className="w-4 h-4"/></button>
           <button onClick={()=>{if(confirm('Delete?'))remove(coll,row.id);}} className="text-slate-300 hover:text-rose-500 inline-flex"><Icon d={Ic.trash} className="w-4 h-4"/></button>
         </td></tr>))}
     </tbody></table></div></div></div>);

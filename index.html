@@ -163,6 +163,7 @@ function load(){ try{const r=localStorage.getItem(STORE_KEY); if(r) return JSON.
 const STAGES=['idea','sampling','pitched','in_review','listed','live','dropped'];
 const STAGE_LABEL={idea:'Idea',sampling:'Sampling',pitched:'Pitched',in_review:'In review',listed:'Listed',live:'Live',dropped:'Dropped'};
 const FORMATS=['frozen','chilled','ambient','dry']; const DATA=['confirmed','partial','unknown'];
+const BRANDS=['Own brand','Manufacturer brand','Retailer private label'];
 const PROD_KEYS=['pack_size_g','units_per_case','cases_per_pallet','cost_value','hs_code','meat_pct','shelf_life_months'];
 function readiness(p){ const filled=PROD_KEYS.filter(k=>p[k]!=null && p[k]!=='').length; return Math.round(filled/PROD_KEYS.length*100); }
 
@@ -170,6 +171,7 @@ function Badge({value}){ const map={confirmed:'bg-emerald-100 text-emerald-700',
   return <span className={'px-2 py-0.5 rounded-full text-xs font-medium '+(map[value]||'bg-slate-100 text-slate-500')}>{value||'-'}</span>; }
 function StageTag({s}){ const map={idea:'bg-slate-100 text-slate-600',sampling:'bg-sky-100 text-sky-700',pitched:'bg-indigo-100 text-indigo-700',in_review:'bg-violet-100 text-violet-700',listed:'bg-emerald-100 text-emerald-700',live:'bg-emerald-100 text-emerald-700',dropped:'bg-rose-100 text-rose-600'};
   return <span className={'px-2 py-0.5 rounded text-xs font-medium '+(map[s]||'bg-slate-100')}>{STAGE_LABEL[s]||s}</span>; }
+function BrandTag({b}){ const map={'Own brand':'bg-emerald-100 text-emerald-700','Manufacturer brand':'bg-sky-100 text-sky-700','Retailer private label':'bg-violet-100 text-violet-700'}; return <span className={'px-2 py-0.5 rounded text-xs font-medium '+(map[b]||'bg-slate-100 text-slate-500')}>{b}</span>; }
 function Pri({p}){ const c=p==='P1'?'text-rose-600':p==='P2'?'text-amber-600':'text-slate-400'; return <span className={'text-xs font-bold '+c}>{p}</span>; }
 
 /* ---------------- form ---------------- */
@@ -258,7 +260,7 @@ function App(){
   const FIELDS={
     manufacturers:[{key:'name',label:'Name'},{key:'country',label:'Country'},{key:'format',label:'Format',type:'select',options:FORMATS},{key:'agent',label:'Agent'},{key:'status',label:'Status'},{key:'eu_approval',label:'EU approval'},{key:'gb_approval',label:'GB approval'},{key:'brcgs_grade',label:'BRCGS'},{key:'halal',label:'HALAL',type:'bool'},{key:'notes',label:'Notes',type:'textarea'}],
     retailers:[{key:'name',label:'Name'},{key:'type',label:'Type'},{key:'region',label:'Region'},{key:'store_count',label:'Stores',type:'number'},{key:'status',label:'Status'},{key:'notes',label:'Notes',type:'textarea'}],
-    products:[{key:'name',label:'Name'},{key:'manufacturer_id',label:'Manufacturer',type:'select',lookup:'manufacturers'},{key:'format',label:'Format',type:'select',options:FORMATS},{key:'pack_size_g',label:'Pack (g)',type:'number'},{key:'units_per_case',label:'Units/case',type:'number'},{key:'cases_per_pallet',label:'Cases/pallet',type:'number'},{key:'cost_value',label:'Cost',type:'number'},{key:'cost_currency',label:'Currency',type:'select',options:['USD','EUR','GBP']},{key:'cost_basis',label:'Cost basis',type:'select',options:['per kg','per case']},{key:'hs_code',label:'HS code'},{key:'tariff_status',label:'Tariff status',type:'select',options:DATA},{key:'tariff_note',label:'Tariff / duty',type:'textarea'},{key:'cooked',label:'Cooked',type:'bool'},{key:'meat_pct',label:'Meat %',type:'number'},{key:'shelf_life_months',label:'Shelf life (mo)',type:'number'},{key:'data_status',label:'Data status',type:'select',options:DATA},{key:'notes',label:'Notes',type:'textarea'}],
+    products:[{key:'name',label:'Name'},{key:'manufacturer_id',label:'Manufacturer',type:'select',lookup:'manufacturers'},{key:'brand',label:'Brand',type:'select',options:BRANDS},{key:'format',label:'Format',type:'select',options:FORMATS},{key:'pack_size_g',label:'Pack (g)',type:'number'},{key:'units_per_case',label:'Units/case',type:'number'},{key:'cases_per_pallet',label:'Cases/pallet',type:'number'},{key:'cost_value',label:'Cost',type:'number'},{key:'cost_currency',label:'Currency',type:'select',options:['USD','EUR','GBP']},{key:'cost_basis',label:'Cost basis',type:'select',options:['per kg','per case']},{key:'hs_code',label:'HS code'},{key:'tariff_status',label:'Tariff status',type:'select',options:DATA},{key:'tariff_note',label:'Tariff / duty',type:'textarea'},{key:'cooked',label:'Cooked',type:'bool'},{key:'meat_pct',label:'Meat %',type:'number'},{key:'shelf_life_months',label:'Shelf life (mo)',type:'number'},{key:'data_status',label:'Data status',type:'select',options:DATA},{key:'notes',label:'Notes',type:'textarea'}],
     opportunities:[{key:'_manufacturer',label:'Manufacturer (pick first)',type:'select',lookup:'manufacturers',clears:['product_id']},{key:'product_id',label:'Product',type:'select',lookup:'products',filterBy:'_manufacturer'},{key:'retailer_id',label:'Retailer',type:'select',lookup:'retailers'},{key:'stage',label:'Stage',type:'select',options:STAGES},{key:'owner',label:'Owner'},{key:'target_volume',label:'Target volume'},{key:'rsp',label:'RSP',type:'number'},{key:'sell_in_price',label:'Sell-in',type:'number'},{key:'value_estimate',label:'Value est (£/yr)',type:'number'},{key:'next_action',label:'Next action'},{key:'notes',label:'Notes',type:'textarea'}],
     tasks:[{key:'title',label:'Title'},{key:'owner',label:'Owner'},{key:'priority',label:'Priority',type:'select',options:['P1','P2','P3']},{key:'status',label:'Status',type:'select',options:['open','in_progress','waiting','done']},{key:'manufacturer_id',label:'Manufacturer',type:'select',lookup:'manufacturers'},{key:'product_id',label:'Product',type:'select',lookup:'products'},{key:'notes',label:'Notes',type:'textarea'}],
     contacts:[{key:'name',label:'Name'},{key:'role',label:'Role'},{key:'email',label:'Email'},{key:'phone',label:'Phone'},{key:'manufacturer_id',label:'Manufacturer',type:'select',lookup:'manufacturers'},{key:'retailer_id',label:'Retailer',type:'select',lookup:'retailers'},{key:'notes',label:'Notes',type:'textarea'}],
@@ -447,7 +449,7 @@ function App(){
       title=p.name; body=(<div className="space-y-5">
         <div className="flex items-center gap-2"><Badge value={p.tariff_status}/><span className="text-xs text-slate-400">tariff</span><span className="ml-auto text-xs text-slate-400">readiness</span><span className="font-semibold text-sm">{readiness(p)}%</span></div>
         <div className="bg-slate-50 rounded-lg p-3 text-sm"><div className="text-xs font-semibold text-slate-500 mb-1.5">Tariff &amp; duty</div><div className="text-slate-700 leading-snug">{dutyText(p)}</div><div className="mt-1 text-xs text-slate-400">HS {p.hs_code||'-'} &middot; status: {p.tariff_status||'unknown'}{p.duty_basis?(' &middot; basis: '+p.duty_basis):''}</div></div>
-        <div><div className="text-xs font-semibold text-slate-500 mb-1">Spec</div><Row k="Manufacturer" v={mName(p.manufacturer_id)}/><Row k="Format" v={p.format}/><Row k="Pack (g)" v={p.pack_size_g}/><Row k="Units/case" v={p.units_per_case}/><Row k="Cases/pallet" v={p.cases_per_pallet}/><Row k="HS code" v={p.hs_code}/><Row k="Cooked" v={p.cooked?'yes':p.cooked===false?'no':'-'}/><Row k="Meat %" v={p.meat_pct}/><Row k="Shelf life (mo)" v={p.shelf_life_months}/></div>
+        <div><div className="text-xs font-semibold text-slate-500 mb-1">Spec</div><Row k="Manufacturer" v={mName(p.manufacturer_id)}/><Row k="Brand" v={p.brand}/><Row k="Format" v={p.format}/><Row k="Pack (g)" v={p.pack_size_g}/><Row k="Units/case" v={p.units_per_case}/><Row k="Cases/pallet" v={p.cases_per_pallet}/><Row k="HS code" v={p.hs_code}/><Row k="Cooked" v={p.cooked?'yes':p.cooked===false?'no':'-'}/><Row k="Meat %" v={p.meat_pct}/><Row k="Shelf life (mo)" v={p.shelf_life_months}/></div>
         <div><div className="text-xs font-semibold text-slate-500 mb-1">Cost</div><Row k="Cost" v={p.cost_value!=null?p.cost_value+' '+(p.cost_currency||'')+' '+(p.cost_basis||''):'-'}/></div>
         <div><div className="text-xs font-semibold text-slate-500 mb-2 flex items-center gap-1.5"><Icon d={Ic.calc} className="w-3.5 h-3.5"/> Landed cost calculator</div><LandedCalc p={p}/></div>
         {p.notes&&<div><div className="text-xs font-semibold text-slate-500 mb-1">Notes</div><p className="text-sm text-slate-600">{p.notes}</p></div>}
@@ -488,7 +490,7 @@ function App(){
   const RelMap=()=>{
     const mans=data.manufacturers, rets=data.retailers;
     const prodMan={}; data.products.forEach(p=>{prodMan[p.id]=p.manufacturer_id;});
-    const model=(m)=>{const n=((m&&m.name)||'').toLowerCase(); if(n.includes('aldelis')||n.includes('pekish')) return {label:'Commission 3-5%',color:'#059669'}; if(n.includes('minhe')) return {label:'Buy & resell ~35%',color:'#4f46e5'}; if(n.includes('korean')) return {label:'NPD, tariff TBC',color:'#d97706'}; return {label:((m&&m.status)||'Concept'),color:'#64748b'};};
+    const model=(m)=>{const n=((m&&m.name)||'').toLowerCase(); if(n.includes('aldelis')||n.includes('pekish')||n.includes('avis')) return {label:'Commission 3-5%',color:'#059669'}; if(n.includes('minhe')) return {label:'Buy & resell ~35%',color:'#4f46e5'}; if(n.includes('korean')) return {label:'NPD, tariff TBC',color:'#d97706'}; return {label:((m&&m.status)||'Concept'),color:'#64748b'};};
     const skuCount=(mid)=>data.products.filter(p=>p.manufacturer_id===mid).length;
     const dealCount=(mid)=>data.opportunities.filter(o=>prodMan[o.product_id]===mid).length;
     const pairs={}; data.opportunities.forEach(o=>{const mid=prodMan[o.product_id]; if(!mid||!o.retailer_id)return; const k=mid+'|'+o.retailer_id; if(!pairs[k])pairs[k]={mid,rid:o.retailer_id,opps:[]}; pairs[k].opps.push(o);});
@@ -523,8 +525,8 @@ function App(){
     const [margin,setMargin]=useState(35);
     const mpct=(Number(margin)||0)/100;
     const money=(n)=>(n==null||isNaN(n))?'£0':'£'+Math.round(n).toLocaleString();
-    const isComm=(mid)=>{const m=byId('manufacturers',mid); const n=((m&&m.name)||'').toLowerCase(); return n.includes('aldelis')||n.includes('pekish');};
-    const rows=data.opportunities.filter(o=>o.stage!=='dropped').map(o=>{const p=byId('products',o.product_id); const mid=p&&p.manufacturer_id; const val=Number(o.value_estimate)||0; const prob=PROB[o.stage]!=null?PROB[o.stage]:0; const comm=isComm(mid); return {o,mid,comm,val,prob,wval:val*prob};});
+    const isComm=(mid)=>{const m=byId('manufacturers',mid); const n=((m&&m.name)||'').toLowerCase(); return n.includes('aldelis')||n.includes('pekish')||n.includes('avis');};
+    const rows=data.opportunities.filter(o=>o.stage!=='dropped').map(o=>{const p=byId('products',o.product_id); const mid=p&&p.manufacturer_id; const val=Number(o.value_estimate)||0; const prob=PROB[o.stage]!=null?PROB[o.stage]:0; const comm=(p&&p.brand!=='Own brand')&&isComm(mid); return {o,mid,comm,val,prob,wval:val*prob};});
     const totVal=rows.reduce((s,r)=>s+r.val,0);
     const wVal=rows.reduce((s,r)=>s+r.wval,0);
     const commBase=rows.filter(r=>r.comm).reduce((s,r)=>s+r.wval,0);
@@ -538,14 +540,14 @@ function App(){
     const card=(label,value,sub)=>(<div className="bg-white rounded-2xl border border-slate-200/70 card-elev p-4"><div className="text-xs text-slate-400">{label}</div><div className="text-2xl font-bold text-slate-800 mt-1 tnum">{value}</div>{sub&&<div className="text-xs text-slate-400 mt-1">{sub}</div>}</div>);
     return(<div className="p-6 space-y-6">
       <div className="flex items-center gap-3 flex-wrap bg-white rounded-xl border border-slate-200 p-3">
-        <div className="text-xs font-medium text-slate-600">Minhe resale gross margin</div>
+        <div className="text-xs font-medium text-slate-600">Resale gross margin (Minhe + own brand)</div>
         <input type="number" value={margin} onChange={e=>setMargin(e.target.value)} className="w-20 border border-slate-300 rounded-lg px-2 py-1 text-sm"/><span className="text-xs text-slate-400">%</span>
         <div className="text-xs text-slate-400 ml-auto">Stage weights: idea 10% · sampling 25% · pitched 40% · in review 60% · listed 80% · live 100%</div>
       </div>
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {card('Pipeline sell-in (full)',money(totVal),'unweighted, £/yr')}
         {card('Weighted sell-in',money(wVal),'probability-weighted, £/yr')}
-        {card('Weighted Minhe margin',money(resaleMargin),margin+'% on weighted resale')}
+        {card('Weighted resale margin',money(resaleMargin),margin+'% on weighted resale')}
         {card('Weighted Aldelis commission',money(commAt(0.03))+' / '+money(commAt(0.04))+' / '+money(commAt(0.05)),'at 3% / 4% / 5%')}
       </div>
       <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4"><div className="text-xs text-emerald-700 font-semibold mb-1">Weighted income to us (Minhe margin + Aldelis commission)</div><div className="text-xl font-bold text-emerald-800">{money(incomeAt(0.03))} – {money(incomeAt(0.05))} <span className="text-sm font-normal text-emerald-600">/yr (Aldelis 3% to 5%)</span></div></div>
@@ -607,7 +609,7 @@ function App(){
                     <div className="font-medium text-slate-800 text-sm leading-tight">{pName(o.product_id)}</div>
                     <button onClick={(e)=>{e.stopPropagation();setModal({entity:'opportunities',record:o});}} className="text-slate-300 hover:text-emerald-600 opacity-0 group-hover:opacity-100 flex-shrink-0" title="Edit"><Icon d={Ic.edit} className="w-3.5 h-3.5"/></button>
                   </div>
-                  <div className="text-xs text-slate-400 mt-0.5">{mName(p.manufacturer_id)}</div>
+                  <div className="text-xs text-slate-400 mt-0.5">{mName(p.manufacturer_id)}</div>{p.brand&&<div className="mt-1"><BrandTag b={p.brand}/></div>}
                   {o.value_estimate>0&&<div className="text-xs text-slate-500 mt-1 tnum">{money(o.value_estimate)}/yr</div>}
                   {o.next_action&&<div className="text-xs text-emerald-600 mt-1 leading-tight">Next: {o.next_action}</div>}
                 </div>);})}
@@ -632,6 +634,7 @@ function App(){
       {tab==='products'&&<TableWrap coll="products" rows={productRows.filter(r=>match(r.name))} cols={[
         {key:'name',label:'Product'},
         {key:'manufacturer_id',label:'Manufacturer',render:r=>mName(r.manufacturer_id)},
+        {key:'brand',label:'Brand',render:r=>r.brand?<BrandTag b={r.brand}/>:'-',sortable:false},
         {key:'format',label:'Format'},
         {key:'pack_size_g',label:'Pack g'},
         {key:'cost_value',label:'Cost',render:r=>r.cost_value!=null?(r.cost_value+' '+(r.cost_currency||'')):'-'},
